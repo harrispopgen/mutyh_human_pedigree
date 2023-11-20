@@ -1,6 +1,6 @@
 # Comparing observed mutation counts to expectations under a parental age model
 
-These scripts were used to compare observed DNM mutation counts and spectra (from our study and Sherwood et al. 2023) to those expected under a parental age model based on the Poisson regressions in J—nsson et al. (2017).
+These scripts were used to compare observed DNM mutation counts and spectra (from our study and Sherwood et al. 2023) to those expected under a parental age model based on the Poisson regressions in JÃ³nsson et al. (2017).
 
 ### Step 1: 
 `step_1_processUnfazedResults.R`
