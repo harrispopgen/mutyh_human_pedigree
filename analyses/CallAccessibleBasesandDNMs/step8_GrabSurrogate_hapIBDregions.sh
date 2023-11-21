@@ -1,9 +1,7 @@
 #!/bin/bash
-#$ -o /net/harris/vol1/home/clyoung1/myh_pedigree/230705_fullpipeline/PossibleDeNovo_files/redo_hap_IBD_intersected_filtered_vcfs/errors
-#$ -e /net/harris/vol1/home/clyoung1/myh_pedigree/230705_fullpipeline/PossibleDeNovo_files/redo_hap_IBD_intersected_filtered_vcfs/errors
 
-module load modules modules-init
-module load htslib/1.9-20 bcftools/1.12 bedtools/2.29.2
+module load modules modules-init # load module environment
+module load htslib/1.9-20 bcftools/1.12 bedtools/2.29.2 # load htslib 1.9-20, bcftools 1.12, bedtools 2.29.2
 
 # Set the directory paths
 vcf_dir="/net/harris/vol1/home/clyoung1/myh_pedigree/230705_fullpipeline/PossibleDeNovo_files/redo_filtered_vcfs/output"
@@ -12,10 +10,11 @@ output_dir="/net/harris/vol1/home/clyoung1/myh_pedigree/230705_fullpipeline/Poss
 bed_mask_file="/net/harris/vol1/home/clyoung1/myh_pedigree/230705_fullpipeline/PossibleDeNovo_files/redo_filtered_vcfs/output/averaged_accessible_bases_no_cent_no_telo_no_segdups_noSNPs_mappable.bed"
 masked_bed_dir="/net/harris/vol1/home/clyoung1/myh_pedigree/230705_fullpipeline/PossibleDeNovo_files/redo_hap_IBD_intersected_filtered_vcfs/masked_beds"
 
+# Function to count sites removed by the mask
 count_sites_removed_masked() {
     local masked_bed_file="$1"
 
-    # Count the number of sites removed by each mask
+    # Count the number of sites removed by each mask and output the count
     local masked_sites_removed=$(bedtools intersect -v -a "$bed_mask_file" -b "$masked_bed_file" | wc -l)
 
     # Output the counts for this masked BED file
@@ -25,6 +24,7 @@ count_sites_removed_masked() {
 
 # Define an associative array to map VCF files to their respective bed files
 declare -A file_mapping
+# Mapping format: "VCF file name"="corresponding BED file(s)"
 file_mapping["highqual_SNPs_family2_C21asfather_C22askid.PossibleDenovoAnnotation.accessible.vcf.gz"]="surrogate_parent_positive_mask_C21_C22.bed"
 file_mapping["highqual_SNPs_P2_kid_P1_P3_parents.PossibleDenovoAnnotation.accessible.vcf.gz"]="P1_P2_double_surrogates.bed P2_P3_double_surrogates.bed P2_v_surrogate_parentsP1_P3.bed"
 file_mapping["highqual_SNPs_family2_C21asfather_C23askid.PossibleDenovoAnnotation.accessible.vcf.gz"]="surrogate_parent_positive_mask_C21_C23.bed"
@@ -47,16 +47,19 @@ file_mapping["highqual_SNPs_P1_kid_P2_P4_parents.PossibleDenovoAnnotation.access
 file_mapping["highqual_SNPs_P1_kid_P3_P4_parents.PossibleDenovoAnnotation.accessible.vcf.gz"]="P1_P3_double_surrogates.bed P1_P4_double_surrogates.bed P1_v_surrogate_parentsP3_P4.bed"
 
 
-# Loop through the VCF files
+# Loop through the VCF files in the mapping array
 for vcf_file in "${!file_mapping[@]}"; do
   bed_files=(${file_mapping[$vcf_file]})
 
+  # Extract base name for file processing
   base_name=$(basename "$vcf_file" .vcf.gz)
 
+  # Define file paths for input, decompression, and output
   vcf_input="$vcf_dir/$vcf_file"
   decompressed_vcf_input="$vcf_dir/${base_name}.vcf"
   output_file="$output_dir/${base_name}_hapIBD_masked.vcf.gz"
 
+  # Prepare VCF file for processing
   tabix -p vcf "$vcf_input"
   gunzip -c "$vcf_input" > "$decompressed_vcf_input"
 
@@ -66,21 +69,25 @@ for vcf_file in "${!file_mapping[@]}"; do
     cat "$bed_dir/$bed" >> "$temp_bed_cat_file"
   done
 
-  # Create a masked BED file by applying the bed mask for the current VCF file
+  # Create a masked BED file (for filtering) by applying the bed mask for the current VCF file
   masked_bed_file="$masked_bed_dir/surrogate_denominator_${base_name}_accessible_no_cent_no_telo_no_segdups_noSNPs_mappable.bed"
   bedtools intersect -u -a "$bed_mask_file" -b "$temp_bed_cat_file" > "$masked_bed_file"
   count_sites_removed_masked "$masked_bed_file"
   
+  # Sort the VCF file and apply the mask
   bcftools sort -Ov "$decompressed_vcf_input" -o "$decompressed_vcf_input.sorted"
 
   # Apply the masked bed file as a positive mask for the current VCF file
   bcftools view -T "$masked_bed_file" "$decompressed_vcf_input.sorted" | \
     bcftools sort -Oz -o "$output_file"
 
+  # Index the output VCF file
   tabix -p vcf "$output_file"
 
+  # Clean up temporary files
   rm "$temp_bed_cat_file"
 
+  # Log completion of processing for each file
   echo "Processed: $vcf_file"
   echo "Output: $output_file"
 done
