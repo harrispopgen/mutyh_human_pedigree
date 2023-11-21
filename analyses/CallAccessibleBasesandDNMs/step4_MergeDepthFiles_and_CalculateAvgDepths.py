@@ -3,30 +3,33 @@ import pandas as pd
 import random
 import numpy as np
 
-# Set sampling percentage
+# Set sampling percentage (for validation purposes)
 sampling_percentage = 0.001
 
-# Initialize with random seed for reproducibility
+# Initialize with random seed for reproducibility in sampling
 random.seed(42)
 
 # Sample IDs and chromosomes
 sample_ids = ["C11.1079256", "C12.1079257", "C21.1079259", "C22.1079260", "C23.1079261", "C31.1079264", "C32.1079265", "C41.1079267", "C42.1079268", "P1.1079254", "P2.1079258", "P3.1079262", "P4.1079266", "S1.1079255", "S3.1079263"]
 chromosomes = ["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22", "chrX"]
 
+# Directory for logging errors
 error_directory = "/net/harris/vol1/home/clyoung1/myh_pedigree/230705_fullpipeline/samtools_depth_files/averaged_depths_per_chr/errors"
 if not os.path.exists(error_directory):
     os.makedirs(error_directory)
 
+# Function to log errors to a file
 def log_error(message):
     with open(os.path.join(error_directory, "error.log"), "a") as error_file:
         error_file.write(message + "\n")
 
-# Function to merge data for all samples and chromosomes
+# Main function to merge data across samples and chromosomes
 def merge_data():
     try:
-        # Check that txt files per chromosome across individuals have the same length
+	# Initialize a dataframe to store window counts per chromosome for each sample
         chromosome_counts = pd.DataFrame(columns=["sample_id", "chromosome", "num_windows"])
-
+	
+	# Iterate over sample IDs and chromosomes to populate the dataframe
         for sample_id in sample_ids:
             for chromosome in chromosomes:
                 file_name = f"{sample_id}_{chromosome}.txt"
@@ -36,12 +39,12 @@ def merge_data():
                     num_windows = len(data)
                     chromosome_counts = chromosome_counts.append({"sample_id": sample_id, "chromosome": chromosome, "num_windows": num_windows}, ignore_index=True)
 
-        # Group the data frame by chromosome
+	# Group and count unique window numbers by chromosome
         grouped_counts = chromosome_counts.groupby("chromosome")["num_windows"].nunique().reset_index()
         grouped_counts.rename(columns={"num_windows": "same_num_windows"}, inplace=True)
 
         print(grouped_counts)
-
+	
         # Create merged data frame of all depth scores per 10KB window, per chromosome across individuals
         output_data = pd.DataFrame(columns=["Chromosome", "Start", "End", "Avg_Depth"] + sample_ids)
 
@@ -91,10 +94,10 @@ def merge_data():
 
         print(output_data)
 
-        # Calculate the average depth score per row
+	# Calculate average depth per 10KB window across all samples
         output_data['Avg_Depth'] = output_data[sample_ids].mean(axis=1)
-
-        # Create separate data frames for each chromosome containing required columns
+	
+	# Separate the data by chromosome and save to individual files
         chromosome_data = output_data[['Chromosome', 'Start', 'End', 'Avg_Depth']].groupby('Chromosome')
 
         # Save separate data frames as text files
@@ -108,6 +111,7 @@ def merge_data():
             file_path = os.path.join(output_directory, file_name)
             df.to_csv(file_path, sep="\t", index=False, header=False)
 
+	#### Sampling and validation process to ensure data integrity
         # Check output data matches data in original files
         # Calculate the number of sites to sample
         total_sites = len(pd.unique(output_data["Chromosome"])) * len(pd.unique(output_data["Start"]))
@@ -192,6 +196,7 @@ def calculate_average_depth_and_filter():
     except Exception as e:
         log_error(f"An error occurred during the calculate_average_depth_and_filter function: {str(e)}")
 
+#### Call the merge_data function to perform the analysis
 # Execute functions
 merge_data()
 calculate_average_depth_and_filter()
