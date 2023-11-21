@@ -1,20 +1,18 @@
 #! /bin/bash
-#$ -l h_rt=150:00:00,mfree=10G
-#$ -o /net/harris/vol1/home/clyoung1/myh_pedigree/230705_fullpipeline/PossibleDeNovo_files/unfiltered_vcfs/errors
-#$ -e /net/harris/vol1/home/clyoung1/myh_pedigree/230705_fullpipeline/PossibleDeNovo_files/unfiltered_vcfs/errors
-#$ -m bea
-#$ -P sage
 
-##### GATK variant annotator: PossibleDeNovo of all individuals in extended pedigree (run on vcf with no prior masks applied) #####
+##### This script runs the GATK variant annotator for the PossibleDeNovo annotation on all individuals in an extended pedigree. #####
+##### It is applied to a multi-sample VCF without prior masks. The script also filters high and low-quality de novo SNPs using bcftools. #####
 
-module load modules modules-init modules-gs # initialize modules
-module load GATK/4.2.6.1
+module load modules modules-init modules-gs # initialize modules environment
+module load GATK/4.2.6.1 # Load GATK version 4.2.6.1
 
+# Define input VCF and output directory
 vcf=/net/harris/vol1/sharing/MUTYH_pedigree/extraFiles/harris_grc_wgs_1.HF.final.vcf.gz
 outdir=/net/harris/vol1/home/clyoung1/myh_pedigree/230705_fullpipeline/PossibleDeNovo_files/unfiltered_vcfs/output
 
-# List of ped files
+# # Define the list of pedigree files
 ped_files=(
+	# Array of file paths to PED files for different family configurations (all surrogate trio combinations considered)
 	"/net/harris/vol1/data/human_mutyh_pedigree/pedFiles/trio1.ped"
 	"/net/harris/vol1/data/human_mutyh_pedigree/pedFiles/trio3.ped"
 	"/net/harris/vol1/data/human_mutyh_pedigree/pedFiles/onechildperped/family2_C21asfather_C22askid.ped"  
@@ -39,8 +37,9 @@ ped_files=(
 	"/net/harris/vol1/data/human_mutyh_pedigree/pedFiles/proband_combos/P4_kid_P2_P3_parents.ped"  
 )
 
+# Loop through each pedigree file
 for pedfile in "${ped_files[@]}"; do
-  # Generate the output file name
+  # Generate the output file name based on the PED file name
   filename=$(basename "$pedfile" .ped)
   GATK_outfile="${filename}.HF.PossibleDenovoAnnotation.vcf.gz"
 
@@ -51,11 +50,11 @@ for pedfile in "${ped_files[@]}"; do
     --pedigree "$pedfile" \
     -O "$outdir/$GATK_outfile"
 
-  ##### bcftools: filtering out high & low quality de novo SNPs from GATK annotated vcf file #####
-
+  ##### Filter out high & low-quality de novo SNPs from GATK annotated vcf file using bcftools #####
   final_vcf="$outdir/$GATK_outfile"
   final_outfile="highqual_SNPs_${filename}.PossibleDenovoAnnotation.vcf.gz"
-
+  
+  # Filtering process
   zcat "$final_vcf" | grep -v "\./\." | bcftools view -m2 -M2 -v snps -i '%FILTER="PASS"' | bcftools filter -e 'INFO/hiConfDeNovo="." & INFO/loConfDeNovo="."' -Oz -o "$outdir/SNVs_only/$final_outfile"
 done
 
