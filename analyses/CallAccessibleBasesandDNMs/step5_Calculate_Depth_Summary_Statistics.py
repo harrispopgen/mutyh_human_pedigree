@@ -4,16 +4,21 @@ import pandas as pd
 # Read the average depth files and calculate summary statistics
 output_directory = "/net/harris/vol1/home/clyoung1/myh_pedigree/230705_fullpipeline/samtools_depth_files/averaged_depths_per_chr/output"
 
+# List to store summary statistics for each chromosome
 summary_stats = []
 
-# Initialize the variable for counting accessible bases
+# Initialize the variable for counting accessible bases across chromosomes
 accessible_bases_count = 0
 
+# Iterate through files in the output directory
 for filename in os.listdir(output_directory):
+    # Process only text files
     if filename.endswith(".txt"):
         file_path = os.path.join(output_directory, filename)
+	# Read chromosome data file
         chromosome_df = pd.read_csv(file_path, sep="\t", header=None, names=["Chromosome", "Start", "End", "Avg_Depth"])
-
+	
+	# Extract chromosome name and calculate summary statistics for depth
         chromosome_name = chromosome_df['Chromosome'].iloc[0]
         mean_depth = chromosome_df['Avg_Depth'].mean()
         median_depth = chromosome_df['Avg_Depth'].median()
@@ -21,13 +26,17 @@ for filename in os.listdir(output_directory):
         max_depth = chromosome_df['Avg_Depth'].max()
         mean_2_5 = 2.5 * mean_depth
 
-        # Calculate the number of accessible bases
+        ### Calculate the number of accessible bases
+	# Path to the file containing accessible base information
         accessible_bases_file = "/net/harris/vol1/home/clyoung1/myh_pedigree/230705_fullpipeline/samtools_depth_files/averaged_depths_per_chr/output/averaged_accessible_bases.bed"
-        accessible_df = pd.read_csv(accessible_bases_file, sep=",")  
-        accessible_df.columns = ["Chromosome", "Start", "End", "Avg_Depth"]  
+        # Read accessible bases data 
+	accessible_df = pd.read_csv(accessible_bases_file, sep=",")  
+        accessible_df.columns = ["Chromosome", "Start", "End", "Avg_Depth"]
+	# Calculate and accumulate the number of accessible bases for the current chromosome  
         accessible_bases = accessible_df.loc[accessible_df["Chromosome"] == chromosome_name, "End"].sum() - accessible_df.loc[accessible_df["Chromosome"] == chromosome_name, "Start"].sum()
         accessible_bases_count += accessible_bases
-
+	
+	# Append chromosome summary statistics to the list
         summary_stats.append({
             'Chromosome': chromosome_name,
             'Mean': mean_depth,
