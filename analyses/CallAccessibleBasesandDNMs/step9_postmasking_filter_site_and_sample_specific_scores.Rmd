@@ -1,0 +1,1342 @@
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(spgs)
+library(gtools)
+library(RColorBrewer)
+library(gridExtra)
+```
+
+
+```{r}
+# Step 0: split up output (CSVs) to only contain trios of interest
+# previously convert VCFs to CSVs to run this script!
+# from https://github.com/dceoy/pdbio: run pdbio vcf2csv --expand-info --expand-samples $file.vcf.gz > $output.csv
+
+# sample ID manifest:
+# P1 = 1079254
+# S1 = 1079255
+# C11 =	1079256
+# C12 =	1079257
+# P2 =	1079258
+# C21 =	1079259
+# C22 =	1079260
+# C23 =	1079261
+# P3 =	1079262
+# S3 =	1079263
+# C31 = 1079264
+# C32 = 1079265
+# P4 =  1079266
+# C41 = 1079267
+# C42 = 1079268
+
+# kids of family 1
+
+trios_1 = read.csv("/Users/candice/Desktop/pedigree_DNMs/numerator/230901_fixedmasking_analysis/csvs/family1.csv", header=T,stringsAsFactors = F)
+
+masked_C11aschild <- trios_1 %>% 
+  select(X.CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO_AC, INFO_AN, INFO_BaseQRankSum, INFO_DB, INFO_DP, INFO_ExcessHet, INFO_FS, INFO_InbreedingCoeff, INFO_MLEAC, INFO_MLEAF, INFO_MQRankSum, INFO_QD, INFO_ReadPosRankSum, INFO_SOR, INFO_hiConfDeNovo, INFO_loConfDeNovo, X1079254_GT, X1079254_AD, X1079254_DP, X1079254_GQ, X1079254_PGT, X1079254_PID, X1079254_PL, X1079254_PS, X1079255_GT, X1079255_AD, X1079255_DP, X1079255_GQ, X1079255_PGT, X1079255_PID, X1079255_PL, X1079255_PS, X1079256_GT, X1079256_AD, X1079256_DP, X1079256_GQ, X1079256_PGT, X1079256_PID, X1079256_PL, X1079256_PS) %>% 
+  filter(INFO_loConfDeNovo=="1079256" | INFO_hiConfDeNovo=="1079256")
+
+masked_C12aschild <- trios_1 %>% 
+  select(X.CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO_AC, INFO_AN, INFO_BaseQRankSum, INFO_DB, INFO_DP, INFO_ExcessHet, INFO_FS, INFO_InbreedingCoeff, INFO_MLEAC, INFO_MLEAF, INFO_MQRankSum, INFO_QD, INFO_ReadPosRankSum, INFO_SOR, INFO_hiConfDeNovo, INFO_loConfDeNovo, X1079254_GT, X1079254_AD, X1079254_DP, X1079254_GQ, X1079254_PGT, X1079254_PID, X1079254_PL, X1079254_PS, X1079255_GT, X1079255_AD, X1079255_DP, X1079255_GQ, X1079255_PGT, X1079255_PID, X1079255_PL, X1079255_PS, X1079257_GT, X1079257_AD, X1079257_DP, X1079257_GQ, X1079257_PGT, X1079257_PID, X1079257_PL, X1079257_PS) %>% 
+  filter(INFO_loConfDeNovo=="1079257" | INFO_hiConfDeNovo=="1079257")
+
+# kids of family 3
+
+trios_3 = read.csv("/Users/candice/Desktop/pedigree_DNMs/numerator/230901_fixedmasking_analysis/csvs/family3.csv", header=T,stringsAsFactors = F)
+
+masked_C31aschild <- trios_3 %>% 
+  select(X.CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO_AC, INFO_AN, INFO_BaseQRankSum, INFO_DB, INFO_DP, INFO_ExcessHet, INFO_FS, INFO_InbreedingCoeff, INFO_MLEAC, INFO_MLEAF, INFO_MQRankSum, INFO_QD, INFO_ReadPosRankSum, INFO_SOR, INFO_hiConfDeNovo, INFO_loConfDeNovo, X1079262_GT, X1079262_AD, X1079262_DP, X1079262_GQ, X1079262_PGT, X1079262_PID, X1079262_PL, X1079262_PS, X1079263_GT, X1079263_AD, X1079263_DP, X1079263_GQ, X1079263_PGT, X1079263_PID, X1079263_PL, X1079263_PS, X1079264_GT, X1079264_AD, X1079264_DP, X1079264_GQ, X1079264_PGT, X1079264_PID, X1079264_PL, X1079264_PS) %>% 
+  filter(INFO_loConfDeNovo=="1079264" | INFO_hiConfDeNovo=="1079264")
+
+masked_C32aschild <- trios_3 %>% 
+  select(X.CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO_AC, INFO_AN, INFO_BaseQRankSum, INFO_DB, INFO_DP, INFO_ExcessHet, INFO_FS, INFO_InbreedingCoeff, INFO_MLEAC, INFO_MLEAF, INFO_MQRankSum, INFO_QD, INFO_ReadPosRankSum, INFO_SOR, INFO_hiConfDeNovo, INFO_loConfDeNovo, X1079262_GT, X1079262_AD, X1079262_DP, X1079262_GQ, X1079262_PGT, X1079262_PID, X1079262_PL, X1079262_PS, X1079263_GT, X1079263_AD, X1079263_DP, X1079263_GQ, X1079263_PGT, X1079263_PID, X1079263_PL, X1079263_PS, X1079265_GT, X1079265_AD, X1079265_DP, X1079265_GQ, X1079265_PGT, X1079265_PID, X1079265_PL, X1079265_PS) %>% 
+  filter(INFO_loConfDeNovo=="1079265" | INFO_hiConfDeNovo=="1079265")
+
+# kids of family 2
+
+C21asfather_C22askid = read.csv("/Users/candice/Desktop/pedigree_DNMs/numerator/230901_fixedmasking_analysis/csvs/C21asfather_C22askid.csv", header=T,stringsAsFactors = F)
+
+masked_C21asfather_C22askid <- C21asfather_C22askid %>% 
+  select(X.CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO_AC, INFO_AN, INFO_BaseQRankSum, INFO_DB, INFO_DP, INFO_ExcessHet, INFO_FS, INFO_InbreedingCoeff, INFO_MLEAC, INFO_MLEAF, INFO_MQRankSum, INFO_QD, INFO_ReadPosRankSum, INFO_SOR, INFO_hiConfDeNovo, INFO_loConfDeNovo, X1079258_GT, X1079258_AD, X1079258_DP, X1079258_GQ, X1079258_PGT, X1079258_PID, X1079258_PL, X1079258_PS, X1079259_GT, X1079259_AD, X1079259_DP, X1079259_GQ, X1079259_PGT, X1079259_PID, X1079259_PL, X1079259_PS, X1079260_GT, X1079260_AD, X1079260_DP, X1079260_GQ, X1079260_PGT, X1079260_PID, X1079260_PL, X1079260_PS)
+
+C21asfather_C23askid = read.csv("/Users/candice/Desktop/pedigree_DNMs/numerator/230901_fixedmasking_analysis/csvs/C21asfather_C23askid.csv", header=T,stringsAsFactors = F)
+
+masked_C21asfather_C23askid <- C21asfather_C23askid %>% 
+  select(X.CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO_AC, INFO_AN, INFO_BaseQRankSum, INFO_DB, INFO_DP, INFO_ExcessHet, INFO_FS, INFO_InbreedingCoeff, INFO_MLEAC, INFO_MLEAF, INFO_MQRankSum, INFO_QD, INFO_ReadPosRankSum, INFO_SOR, INFO_hiConfDeNovo, INFO_loConfDeNovo, X1079258_GT, X1079258_AD, X1079258_DP, X1079258_GQ, X1079258_PGT, X1079258_PID, X1079258_PL, X1079258_PS, X1079259_GT, X1079259_AD, X1079259_DP, X1079259_GQ, X1079259_PGT, X1079259_PID, X1079259_PL, X1079259_PS, X1079261_GT, X1079261_AD, X1079261_DP, X1079261_GQ, X1079261_PGT, X1079261_PID, X1079261_PL, X1079261_PS)
+
+C22asfather_C21askid = read.csv("/Users/candice/Desktop/pedigree_DNMs/numerator/230901_fixedmasking_analysis/csvs/C22asfather_C21askid.csv", header=T,stringsAsFactors = F)
+
+masked_C22asfather_C21askid <- C22asfather_C21askid %>% 
+  select(X.CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO_AC, INFO_AN, INFO_BaseQRankSum, INFO_DB, INFO_DP, INFO_ExcessHet, INFO_FS, INFO_InbreedingCoeff, INFO_MLEAC, INFO_MLEAF, INFO_MQRankSum, INFO_QD, INFO_ReadPosRankSum, INFO_SOR, INFO_hiConfDeNovo, INFO_loConfDeNovo, X1079258_GT, X1079258_AD, X1079258_DP, X1079258_GQ, X1079258_PGT, X1079258_PID, X1079258_PL, X1079258_PS, X1079260_GT, X1079260_AD, X1079260_DP, X1079260_GQ, X1079260_PGT, X1079260_PID, X1079260_PL, X1079260_PS, X1079259_GT, X1079259_AD, X1079259_DP, X1079259_GQ, X1079259_PGT, X1079259_PID, X1079259_PL, X1079259_PS)
+
+C22asfather_C23askid = read.csv("/Users/candice/Desktop/pedigree_DNMs/numerator/230901_fixedmasking_analysis/csvs/C22asfather_C23askid.csv", header=T,stringsAsFactors = F)
+
+masked_C22asfather_C23askid <- C22asfather_C23askid %>% 
+  select(X.CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO_AC, INFO_AN, INFO_BaseQRankSum, INFO_DB, INFO_DP, INFO_ExcessHet, INFO_FS, INFO_InbreedingCoeff, INFO_MLEAC, INFO_MLEAF, INFO_MQRankSum, INFO_QD, INFO_ReadPosRankSum, INFO_SOR, INFO_hiConfDeNovo, INFO_loConfDeNovo, X1079258_GT, X1079258_AD, X1079258_DP, X1079258_GQ, X1079258_PGT, X1079258_PID, X1079258_PL, X1079258_PS, X1079260_GT, X1079260_AD, X1079260_DP, X1079260_GQ, X1079260_PGT, X1079260_PID, X1079260_PL, X1079260_PS, X1079261_GT, X1079261_AD, X1079261_DP, X1079261_GQ, X1079261_PGT, X1079261_PID, X1079261_PL, X1079261_PS)
+
+C23asfather_C21askid = read.csv("/Users/candice/Desktop/pedigree_DNMs/numerator/230901_fixedmasking_analysis/csvs/C23asfather_C21askid.csv", header=T,stringsAsFactors = F)
+
+masked_C23asfather_C21askid <- C23asfather_C21askid %>% 
+  select(X.CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO_AC, INFO_AN, INFO_BaseQRankSum, INFO_DB, INFO_DP, INFO_ExcessHet, INFO_FS, INFO_InbreedingCoeff, INFO_MLEAC, INFO_MLEAF, INFO_MQRankSum, INFO_QD, INFO_ReadPosRankSum, INFO_SOR, INFO_hiConfDeNovo, INFO_loConfDeNovo, X1079258_GT, X1079258_AD, X1079258_DP, X1079258_GQ, X1079258_PGT, X1079258_PID, X1079258_PL, X1079258_PS, X1079261_GT, X1079261_AD, X1079261_DP, X1079261_GQ, X1079261_PGT, X1079261_PID, X1079261_PL, X1079261_PS, X1079259_GT, X1079259_AD, X1079259_DP, X1079259_GQ, X1079259_PGT, X1079259_PID, X1079259_PL, X1079259_PS)
+
+C23asfather_C22askid = read.csv("/Users/candice/Desktop/pedigree_DNMs/numerator/230901_fixedmasking_analysis/csvs/C23asfather_C22askid.csv", header=T,stringsAsFactors = F)
+
+masked_C23asfather_C22askid <- C23asfather_C22askid %>% 
+  select(X.CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO_AC, INFO_AN, INFO_BaseQRankSum, INFO_DB, INFO_DP, INFO_ExcessHet, INFO_FS, INFO_InbreedingCoeff, INFO_MLEAC, INFO_MLEAF, INFO_MQRankSum, INFO_QD, INFO_ReadPosRankSum, INFO_SOR, INFO_hiConfDeNovo, INFO_loConfDeNovo, X1079258_GT, X1079258_AD, X1079258_DP, X1079258_GQ, X1079258_PGT, X1079258_PID, X1079258_PL, X1079258_PS, X1079261_GT, X1079261_AD, X1079261_DP, X1079261_GQ, X1079261_PGT, X1079261_PID, X1079261_PL, X1079261_PS, X1079260_GT, X1079260_AD, X1079260_DP, X1079260_GQ, X1079260_PGT, X1079260_PID, X1079260_PL, X1079260_PS)
+
+# kids of family 4
+
+C41asfather_C42askid = read.csv("/Users/candice/Desktop/pedigree_DNMs/numerator/230901_fixedmasking_analysis/csvs/C41asfather_C42askid.csv", header=T,stringsAsFactors = F)
+
+masked_C41asfather_C42askid <- C41asfather_C42askid %>% 
+  select(X.CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO_AC, INFO_AN, INFO_BaseQRankSum, INFO_DB, INFO_DP, INFO_ExcessHet, INFO_FS, INFO_InbreedingCoeff, INFO_MLEAC, INFO_MLEAF, INFO_MQRankSum, INFO_QD, INFO_ReadPosRankSum, INFO_SOR, INFO_hiConfDeNovo, INFO_loConfDeNovo, X1079266_GT, X1079266_AD, X1079266_DP, X1079266_GQ, X1079266_PGT, X1079266_PID, X1079266_PL, X1079266_PS, X1079267_GT, X1079267_AD, X1079267_DP, X1079267_GQ, X1079267_PGT, X1079267_PID, X1079267_PL, X1079267_PS, X1079268_GT, X1079268_AD, X1079268_DP, X1079268_GQ, X1079268_PGT, X1079268_PID, X1079268_PL, X1079268_PS)
+
+C42asfather_C41askid = read.csv("/Users/candice/Desktop/pedigree_DNMs/numerator/230901_fixedmasking_analysis/csvs/C42asfather_C41askid.csv", header=T,stringsAsFactors = F)
+
+masked_C42asfather_C41askid <- C42asfather_C41askid %>% 
+  select(X.CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO_AC, INFO_AN, INFO_BaseQRankSum, INFO_DB, INFO_DP, INFO_ExcessHet, INFO_FS, INFO_InbreedingCoeff, INFO_MLEAC, INFO_MLEAF, INFO_MQRankSum, INFO_QD, INFO_ReadPosRankSum, INFO_SOR, INFO_hiConfDeNovo, INFO_loConfDeNovo, X1079266_GT, X1079266_AD, X1079266_DP, X1079266_GQ, X1079266_PGT, X1079266_PID, X1079266_PL, X1079266_PS, X1079267_GT, X1079267_AD, X1079267_DP, X1079267_GQ, X1079267_PGT, X1079267_PID, X1079267_PL, X1079267_PS, X1079268_GT, X1079268_AD, X1079268_DP, X1079268_GQ, X1079268_PGT, X1079268_PID, X1079268_PL, X1079268_PS)
+
+# parent generation combinations
+
+P1P2asparents_P3askid = read.csv("/Users/candice/Desktop/pedigree_DNMs/numerator/230901_fixedmasking_analysis/csvs/P3_kid_P1_P2_parents.csv", header=T,stringsAsFactors = F)
+
+masked_P1P2asparents_P3askid <- P1P2asparents_P3askid %>% 
+  select(X.CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO_AC, INFO_AN, INFO_BaseQRankSum, INFO_DB, INFO_DP, INFO_ExcessHet, INFO_FS, INFO_InbreedingCoeff, INFO_MLEAC, INFO_MLEAF, INFO_MQRankSum, INFO_QD, INFO_ReadPosRankSum, INFO_SOR, INFO_hiConfDeNovo, INFO_loConfDeNovo, X1079254_GT, X1079254_AD, X1079254_DP, X1079254_GQ, X1079254_PGT, X1079254_PID, X1079254_PL, X1079254_PS, X1079258_GT, X1079258_AD, X1079258_DP, X1079258_GQ, X1079258_PGT, X1079258_PID, X1079258_PL, X1079258_PS, X1079262_GT, X1079262_AD, X1079262_DP, X1079262_GQ, X1079262_PGT, X1079262_PID, X1079262_PL, X1079262_PS)
+
+P1P2asparents_P4askid = read.csv("/Users/candice/Desktop/pedigree_DNMs/numerator/230901_fixedmasking_analysis/csvs/P4_kid_P1_P2_parents.csv", header=T,stringsAsFactors = F)
+
+masked_P1P2asparents_P4askid <- P1P2asparents_P4askid %>% 
+  select(X.CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO_AC, INFO_AN, INFO_BaseQRankSum, INFO_DB, INFO_DP, INFO_ExcessHet, INFO_FS, INFO_InbreedingCoeff, INFO_MLEAC, INFO_MLEAF, INFO_MQRankSum, INFO_QD, INFO_ReadPosRankSum, INFO_SOR, INFO_hiConfDeNovo, INFO_loConfDeNovo, X1079254_GT, X1079254_AD, X1079254_DP, X1079254_GQ, X1079254_PGT, X1079254_PID, X1079254_PL, X1079254_PS, X1079258_GT, X1079258_AD, X1079258_DP, X1079258_GQ, X1079258_PGT, X1079258_PID, X1079258_PL, X1079258_PS, X1079266_GT, X1079266_AD, X1079266_DP, X1079266_GQ, X1079266_PGT, X1079266_PID, X1079266_PL, X1079266_PS)
+
+P1P3asparents_P2askid = read.csv("/Users/candice/Desktop/pedigree_DNMs/numerator/230901_fixedmasking_analysis/csvs/P2_kid_P1_P3_parents.csv", header=T,stringsAsFactors = F)
+
+masked_P1P3asparents_P2askid <- P1P3asparents_P2askid %>% 
+  select(X.CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO_AC, INFO_AN, INFO_BaseQRankSum, INFO_DB, INFO_DP, INFO_ExcessHet, INFO_FS, INFO_InbreedingCoeff, INFO_MLEAC, INFO_MLEAF, INFO_MQRankSum, INFO_QD, INFO_ReadPosRankSum, INFO_SOR, INFO_hiConfDeNovo, INFO_loConfDeNovo, X1079254_GT, X1079254_AD, X1079254_DP, X1079254_GQ, X1079254_PGT, X1079254_PID, X1079254_PL, X1079254_PS, X1079258_GT, X1079258_AD, X1079258_DP, X1079258_GQ, X1079258_PGT, X1079258_PID, X1079258_PL, X1079258_PS, X1079262_GT, X1079262_AD, X1079262_DP, X1079262_GQ, X1079262_PGT, X1079262_PID, X1079262_PL, X1079262_PS)
+
+P1P3asparents_P4askid = read.csv("/Users/candice/Desktop/pedigree_DNMs/numerator/230901_fixedmasking_analysis/csvs/P4_kid_P1_P3_parents.csv", header=T,stringsAsFactors = F)
+
+masked_P1P3asparents_P4askid <- P1P3asparents_P4askid %>% 
+  select(X.CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO_AC, INFO_AN, INFO_BaseQRankSum, INFO_DB, INFO_DP, INFO_ExcessHet, INFO_FS, INFO_InbreedingCoeff, INFO_MLEAC, INFO_MLEAF, INFO_MQRankSum, INFO_QD, INFO_ReadPosRankSum, INFO_SOR, INFO_hiConfDeNovo, INFO_loConfDeNovo, X1079254_GT, X1079254_AD, X1079254_DP, X1079254_GQ, X1079254_PGT, X1079254_PID, X1079254_PL, X1079254_PS, X1079262_GT, X1079262_AD, X1079262_DP, X1079262_GQ, X1079262_PGT, X1079262_PID, X1079262_PL, X1079262_PS, X1079266_GT, X1079266_AD, X1079266_DP, X1079266_GQ, X1079266_PGT, X1079266_PID, X1079266_PL, X1079266_PS)
+
+P1P4asparents_P2askid = read.csv("/Users/candice/Desktop/pedigree_DNMs/numerator/230901_fixedmasking_analysis/csvs/P2_kid_P1_P4_parents.csv", header=T,stringsAsFactors = F)
+
+masked_P1P4asparents_P2askid <- P1P4asparents_P2askid %>% 
+  select(X.CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO_AC, INFO_AN, INFO_BaseQRankSum, INFO_DB, INFO_DP, INFO_ExcessHet, INFO_FS, INFO_InbreedingCoeff, INFO_MLEAC, INFO_MLEAF, INFO_MQRankSum, INFO_QD, INFO_ReadPosRankSum, INFO_SOR, INFO_hiConfDeNovo, INFO_loConfDeNovo, X1079254_GT, X1079254_AD, X1079254_DP, X1079254_GQ, X1079254_PGT, X1079254_PID, X1079254_PL, X1079254_PS, X1079258_GT, X1079258_AD, X1079258_DP, X1079258_GQ, X1079258_PGT, X1079258_PID, X1079258_PL, X1079258_PS, X1079266_GT, X1079266_AD, X1079266_DP, X1079266_GQ, X1079266_PGT, X1079266_PID, X1079266_PL, X1079266_PS)
+
+P1P4asparents_P3askid = read.csv("/Users/candice/Desktop/pedigree_DNMs/numerator/230901_fixedmasking_analysis/csvs/P3_kid_P1_P4_parents.csv", header=T,stringsAsFactors = F)
+
+masked_P1P4asparents_P3askid <- P1P4asparents_P3askid %>% 
+  select(X.CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO_AC, INFO_AN, INFO_BaseQRankSum, INFO_DB, INFO_DP, INFO_ExcessHet, INFO_FS, INFO_InbreedingCoeff, INFO_MLEAC, INFO_MLEAF, INFO_MQRankSum, INFO_QD, INFO_ReadPosRankSum, INFO_SOR, INFO_hiConfDeNovo, INFO_loConfDeNovo, X1079254_GT, X1079254_AD, X1079254_DP, X1079254_GQ, X1079254_PGT, X1079254_PID, X1079254_PL, X1079254_PS, X1079262_GT, X1079262_AD, X1079262_DP, X1079262_GQ, X1079262_PGT, X1079262_PID, X1079262_PL, X1079262_PS, X1079266_GT, X1079266_AD, X1079266_DP, X1079266_GQ, X1079266_PGT, X1079266_PID, X1079266_PL, X1079266_PS)
+
+P2P3asparents_P1askid = read.csv("/Users/candice/Desktop/pedigree_DNMs/numerator/230901_fixedmasking_analysis/csvs/P1_kid_P2_P3_parents.csv", header=T,stringsAsFactors = F)
+
+masked_P2P3asparents_P1askid <- P2P3asparents_P1askid %>% 
+  select(X.CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO_AC, INFO_AN, INFO_BaseQRankSum, INFO_DB, INFO_DP, INFO_ExcessHet, INFO_FS, INFO_InbreedingCoeff, INFO_MLEAC, INFO_MLEAF, INFO_MQRankSum, INFO_QD, INFO_ReadPosRankSum, INFO_SOR, INFO_hiConfDeNovo, INFO_loConfDeNovo, X1079254_GT, X1079254_AD, X1079254_DP, X1079254_GQ, X1079254_PGT, X1079254_PID, X1079254_PL, X1079254_PS, X1079258_GT, X1079258_AD, X1079258_DP, X1079258_GQ, X1079258_PGT, X1079258_PID, X1079258_PL, X1079258_PS, X1079262_GT, X1079262_AD, X1079262_DP, X1079262_GQ, X1079262_PGT, X1079262_PID, X1079262_PL, X1079262_PS)
+
+P2P3asparents_P4askid = read.csv("/Users/candice/Desktop/pedigree_DNMs/numerator/230901_fixedmasking_analysis/csvs/P4_kid_P2_P3_parents.csv", header=T,stringsAsFactors = F)
+
+masked_P2P3asparents_P4askid <- P2P3asparents_P4askid %>% 
+  select(X.CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO_AC, INFO_AN, INFO_BaseQRankSum, INFO_DB, INFO_DP, INFO_ExcessHet, INFO_FS, INFO_InbreedingCoeff, INFO_MLEAC, INFO_MLEAF, INFO_MQRankSum, INFO_QD, INFO_ReadPosRankSum, INFO_SOR, INFO_hiConfDeNovo, INFO_loConfDeNovo, X1079266_GT, X1079266_AD, X1079266_DP, X1079266_GQ, X1079266_PGT, X1079266_PID, X1079266_PL, X1079266_PS, X1079258_GT, X1079258_AD, X1079258_DP, X1079258_GQ, X1079258_PGT, X1079258_PID, X1079258_PL, X1079258_PS, X1079262_GT, X1079262_AD, X1079262_DP, X1079262_GQ, X1079262_PGT, X1079262_PID, X1079262_PL, X1079262_PS)
+
+P2P4asparents_P1askid = read.csv("/Users/candice/Desktop/pedigree_DNMs/numerator/230901_fixedmasking_analysis/csvs/P1_kid_P2_P4_parents.csv", header=T,stringsAsFactors = F)
+
+masked_P2P4asparents_P1askid <- P2P4asparents_P1askid %>% 
+  select(X.CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO_AC, INFO_AN, INFO_BaseQRankSum, INFO_DB, INFO_DP, INFO_ExcessHet, INFO_FS, INFO_InbreedingCoeff, INFO_MLEAC, INFO_MLEAF, INFO_MQRankSum, INFO_QD, INFO_ReadPosRankSum, INFO_SOR, INFO_hiConfDeNovo, INFO_loConfDeNovo, X1079254_GT, X1079254_AD, X1079254_DP, X1079254_GQ, X1079254_PGT, X1079254_PID, X1079254_PL, X1079254_PS, X1079258_GT, X1079258_AD, X1079258_DP, X1079258_GQ, X1079258_PGT, X1079258_PID, X1079258_PL, X1079258_PS, X1079266_GT, X1079266_AD, X1079266_DP, X1079266_GQ, X1079266_PGT, X1079266_PID, X1079266_PL, X1079266_PS)
+
+P2P4asparents_P3askid = read.csv("/Users/candice/Desktop/pedigree_DNMs/numerator/230901_fixedmasking_analysis/csvs/P3_kid_P2_P4_parents.csv", header=T,stringsAsFactors = F)
+
+masked_P2P4asparents_P3askid <- P2P4asparents_P3askid %>% 
+  select(X.CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO_AC, INFO_AN, INFO_BaseQRankSum, INFO_DB, INFO_DP, INFO_ExcessHet, INFO_FS, INFO_InbreedingCoeff, INFO_MLEAC, INFO_MLEAF, INFO_MQRankSum, INFO_QD, INFO_ReadPosRankSum, INFO_SOR, INFO_hiConfDeNovo, INFO_loConfDeNovo, X1079266_GT, X1079266_AD, X1079266_DP, X1079266_GQ, X1079266_PGT, X1079266_PID, X1079266_PL, X1079266_PS, X1079258_GT, X1079258_AD, X1079258_DP, X1079258_GQ, X1079258_PGT, X1079258_PID, X1079258_PL, X1079258_PS, X1079262_GT, X1079262_AD, X1079262_DP, X1079262_GQ, X1079262_PGT, X1079262_PID, X1079262_PL, X1079262_PS)
+
+P3P4asparents_P1askid = read.csv("/Users/candice/Desktop/pedigree_DNMs/numerator/230901_fixedmasking_analysis/csvs/P1_kid_P3_P4_parents.csv", header=T,stringsAsFactors = F)
+
+masked_P3P4asparents_P1askid <- P3P4asparents_P1askid %>% 
+  select(X.CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO_AC, INFO_AN, INFO_BaseQRankSum, INFO_DB, INFO_DP, INFO_ExcessHet, INFO_FS, INFO_InbreedingCoeff, INFO_MLEAC, INFO_MLEAF, INFO_MQRankSum, INFO_QD, INFO_ReadPosRankSum, INFO_SOR, INFO_hiConfDeNovo, INFO_loConfDeNovo, X1079254_GT, X1079254_AD, X1079254_DP, X1079254_GQ, X1079254_PGT, X1079254_PID, X1079254_PL, X1079254_PS, X1079262_GT, X1079262_AD, X1079262_DP, X1079262_GQ, X1079262_PGT, X1079262_PID, X1079262_PL, X1079262_PS, X1079266_GT, X1079266_AD, X1079266_DP, X1079266_GQ, X1079266_PGT, X1079266_PID, X1079266_PL, X1079266_PS)
+
+P3P4asparents_P2askid = read.csv("/Users/candice/Desktop/pedigree_DNMs/numerator/230901_fixedmasking_analysis/csvs/P2_kid_P3_P4_parents.csv", header=T,stringsAsFactors = F)
+
+masked_P3P4asparents_P2askid <- P3P4asparents_P2askid %>% 
+  select(X.CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO_AC, INFO_AN, INFO_BaseQRankSum, INFO_DB, INFO_DP, INFO_ExcessHet, INFO_FS, INFO_InbreedingCoeff, INFO_MLEAC, INFO_MLEAF, INFO_MQRankSum, INFO_QD, INFO_ReadPosRankSum, INFO_SOR, INFO_hiConfDeNovo, INFO_loConfDeNovo, X1079266_GT, X1079266_AD, X1079266_DP, X1079266_GQ, X1079266_PGT, X1079266_PID, X1079266_PL, X1079266_PS, X1079258_GT, X1079258_AD, X1079258_DP, X1079258_GQ, X1079258_PGT, X1079258_PID, X1079258_PL, X1079258_PS, X1079262_GT, X1079262_AD, X1079262_DP, X1079262_GQ, X1079262_PGT, X1079262_PID, X1079262_PL, X1079262_PS)
+
+```
+
+```{r}
+# Step 0 cont: add REF.ALT column to all data frames, apply GATK recommended site specific filters (see Mutationathon paper) & sample specific filters (GQ, DP, AD)
+# apply DP & GQ filters as applied in Jonsson et at 2017
+
+## family 1
+
+C11aschild <- masked_C11aschild %>% 
+  mutate(INFO_loConfDeNovo=as.character(INFO_loConfDeNovo)) %>%
+  mutate(Sample_ID = case_when(
+    endsWith(INFO_hiConfDeNovo, "1079256") ~ "C11",
+    endsWith(INFO_loConfDeNovo, "1079256") ~ "C11")) %>% 
+  rename(P1_GT=X1079254_GT, P1_DP=X1079254_DP, P1_GQ=X1079254_GQ, P1_AD=X1079254_AD,
+         S1_GT=X1079255_GT, S1_DP=X1079255_DP, S1_GQ=X1079255_GQ, S1_AD=X1079255_AD,
+         C11_GT=X1079256_GT, C11_DP=X1079256_DP, C11_GQ=X1079256_GQ, C11_AD=X1079256_AD) %>% 
+  filter(INFO_QD > 2.0) %>% # GATK site specific hard filter 
+  filter(INFO_FS < 60.0) %>% # GATK site specific hard filter 
+  filter(INFO_MQRankSum > -12.5) %>% # GATK site specific hard filter 
+  filter(INFO_ReadPosRankSum > -8.0) %>% # GATK site specific hard filter 
+  filter(INFO_SOR < 3.0) %>% # GATK site specific hard filter 
+  filter(P1_DP > 12 & 
+         S1_DP > 12 & 
+         P1_DP < 120 & 
+         S1_DP < 120) %>% # filter parents on DP 
+  filter(P1_GQ >=20 & S1_GQ >=20) %>%  # filter parents on GQ 
+  filter(C11_DP > 12 & 
+         C11_DP < 120) %>% #min/max DP range for kid 
+  filter(C11_GQ >= 20) %>% #min GQ for kid 
+  mutate(P1_GT=gsub("\\|", "/", P1_GT)) %>% # change | to / for GT column
+  mutate(S1_GT=gsub("\\|", "/", S1_GT)) %>% # change | to / for GT column
+  mutate(C11_GT=gsub("\\|", "/", C11_GT)) %>% # change | to / for GT column
+  separate(P1_AD, c('P1_AD_1', 'P1_AD_2')) %>% # split AD column into 2
+  separate(S1_AD, c('S1_AD_1', 'S1_AD_2')) %>% # split AD column into 2
+  separate(C11_AD, c('C11_AD_1', 'C11_AD_2')) %>% # split AD column into 2
+  filter(!(P1_GT == "0/0" & P1_AD_2 > 0)) %>% 
+  filter(!(S1_GT == "0/0" & S1_AD_2 > 0)) %>% 
+  filter(!(P1_GT == "1/1" & P1_AD_1 > 0)) %>% 
+  filter(!(S1_GT == "1/1" & S1_AD_1 > 0)) %>% 
+  filter(!X.CHROM=="chrX") %>% 
+  mutate(AD_frac=(as.numeric(C11_AD_2)/(as.numeric(C11_AD_1)+as.numeric(C11_AD_2)))) %>% 
+  #filter(AD_frac > 0.3 & AD_frac < 0.7 & Sample_ID=="C11") %>% # do not filter on VAF at this step
+  mutate(mut_ID = paste0("mutation", row_number(), sep="")) %>% 
+  mutate(new_REF = ifelse(REF=="T" | REF=="G", toupper(complement(REF)), REF)) %>% 
+  mutate(new_ALT = ifelse(REF=="T" | REF=="G", toupper(complement(ALT)), ALT)) %>% 
+  unite(REF.ALT, c("new_REF", "new_ALT"), sep=".") 
+C11aschild$X.CHROM <- as.factor(C11aschild$X.CHROM) #### for reordering on plot
+
+C12aschild <- masked_C12aschild %>% 
+  mutate(INFO_loConfDeNovo=as.character(INFO_loConfDeNovo)) %>%
+  mutate(Sample_ID = case_when(
+    endsWith(INFO_hiConfDeNovo, "1079257") ~ "C12",
+    endsWith(INFO_loConfDeNovo, "1079257") ~ "C12")) %>% 
+  rename(P1_GT=X1079254_GT, P1_DP=X1079254_DP, P1_GQ=X1079254_GQ, P1_AD=X1079254_AD,
+         S1_GT=X1079255_GT, S1_DP=X1079255_DP, S1_GQ=X1079255_GQ, S1_AD=X1079255_AD,
+         C12_GT=X1079257_GT, C12_DP=X1079257_DP, C12_GQ=X1079257_GQ, C12_AD=X1079257_AD) %>% 
+  filter(INFO_QD > 2.0) %>% # GATK site specific hard filter 
+  filter(INFO_FS < 60.0) %>% # GATK site specific hard filter 
+  filter(INFO_MQRankSum > -12.5) %>% # GATK site specific hard filter 
+  filter(INFO_ReadPosRankSum > -8.0) %>% # GATK site specific hard filter 
+  filter(INFO_SOR < 3.0) %>% # GATK site specific hard filter
+  filter(P1_DP > 12 & 
+         S1_DP > 12 & 
+         P1_DP < 120 & 
+         S1_DP < 120) %>% # filter parents on DP 
+  filter(P1_GQ >=20 & S1_GQ >=20) %>%  # filter parents on GQ 
+  filter(C12_DP > 12 & 
+         C12_DP < 120) %>% #min/max DP range for kid 
+  filter(C12_GQ >= 20) %>% #min GQ for kid 
+  mutate(P1_GT=gsub("\\|", "/", P1_GT)) %>% # change | to / for GT column
+  mutate(S1_GT=gsub("\\|", "/", S1_GT)) %>% # change | to / for GT column
+  mutate(C12_GT=gsub("\\|", "/", C12_GT)) %>% # change | to / for GT column
+  separate(P1_AD, c('P1_AD_1', 'P1_AD_2')) %>% # split AD column into 2
+  separate(S1_AD, c('S1_AD_1', 'S1_AD_2')) %>% # split AD column into 2
+  separate(C12_AD, c('C12_AD_1', 'C12_AD_2')) %>% # split AD column into 2
+  filter(!(P1_GT == "0/0" & P1_AD_2 > 0)) %>%  
+  filter(!(S1_GT == "0/0" & S1_AD_2 > 0)) %>%  
+  filter(!(P1_GT == "1/1" & P1_AD_1 > 0)) %>%  
+  filter(!(S1_GT == "1/1" & S1_AD_1 > 0)) %>% 
+  filter(!X.CHROM=="chrX") %>% 
+  mutate(AD_frac=(as.numeric(C12_AD_2)/(as.numeric(C12_AD_1)+as.numeric(C12_AD_2)))) %>% 
+  #filter(AD_frac > 0.3 & AD_frac < 0.7 & Sample_ID=="C12") %>% # do not filter	on VAF at this step
+  mutate(mut_ID = paste0("mutation", row_number(), sep="")) %>% 
+  mutate(new_REF = ifelse(REF=="T" | REF=="G", toupper(complement(REF)), REF)) %>% 
+  mutate(new_ALT = ifelse(REF=="T" | REF=="G", toupper(complement(ALT)), ALT)) %>% 
+  unite(REF.ALT, c("new_REF", "new_ALT"), sep=".") 
+C12aschild$X.CHROM <- as.factor(C12aschild$X.CHROM)
+
+## family 3
+
+C31aschild <- masked_C31aschild %>%
+  mutate(INFO_loConfDeNovo=as.character(INFO_loConfDeNovo)) %>%
+  mutate(Sample_ID = case_when(
+    endsWith(INFO_hiConfDeNovo, "1079264") ~ "C31",
+    endsWith(INFO_loConfDeNovo, "1079264") ~ "C31")) %>% 
+  rename(P3_GT=X1079262_GT, P3_DP=X1079262_DP, P3_GQ=X1079262_GQ, P3_AD=X1079262_AD,
+         S3_GT=X1079263_GT, S3_DP=X1079263_DP, S3_GQ=X1079263_GQ, S3_AD=X1079263_AD,
+         C31_GT=X1079264_GT, C31_DP=X1079264_DP, C31_GQ=X1079264_GQ, C31_AD=X1079264_AD) %>% 
+  filter(INFO_QD > 2.0) %>% # GATK site specific hard filter 
+  filter(INFO_FS < 60.0) %>% # GATK site specific hard filter 
+  filter(INFO_MQRankSum > -12.5) %>% # GATK site specific hard filter 
+  filter(INFO_ReadPosRankSum > -8.0) %>% # GATK site specific hard filter 
+  filter(INFO_SOR < 3.0) %>% # GATK site specific hard filter 
+  filter(P3_DP > 12 & 
+         S3_DP > 12 & 
+         P3_DP < 120 & 
+         S3_DP < 120) %>% # filter parents on DP 
+  filter(P3_GQ >=20 & S3_GQ >=20) %>%  # filter parents on GQ 
+  filter(C31_DP > 12 & 
+         C31_DP < 120) %>% #min/max DP range for kid 
+  filter(C31_GQ >= 20) %>% #min GQ for kid 
+  mutate(P3_GT=gsub("\\|", "/", P3_GT)) %>% # change | to / for GT column
+  mutate(S3_GT=gsub("\\|", "/", S3_GT)) %>% # change | to / for GT column
+  mutate(C31_GT=gsub("\\|", "/", C31_GT)) %>% # change | to / for GT column
+  separate(P3_AD, c('P3_AD_1', 'P3_AD_2')) %>% # split AD column into 2
+  separate(S3_AD, c('S3_AD_1', 'S3_AD_2')) %>% # split AD column into 2
+  separate(C31_AD, c('C31_AD_1', 'C31_AD_2')) %>% # split AD column into 2
+  filter(!(P3_GT == "0/0" & P3_AD_2 > 0)) %>%  
+  filter(!(S3_GT == "0/0" & S3_AD_2 > 0)) %>% 
+  filter(!(P3_GT == "1/1" & P3_AD_1 > 0)) %>% 
+  filter(!(S3_GT == "1/1" & S3_AD_1 > 0)) %>% 
+  filter(!X.CHROM=="chrX") %>% 
+  mutate(AD_frac=(as.numeric(C31_AD_2)/(as.numeric(C31_AD_1)+as.numeric(C31_AD_2)))) %>% 
+  #filter(AD_frac > 0.3 & AD_frac < 0.7 & Sample_ID=="C31") %>%   
+  mutate(mut_ID = paste0("mutation", row_number(), sep="")) %>% 
+  mutate(new_REF = ifelse(REF=="T" | REF=="G", toupper(complement(REF)), REF)) %>% 
+  mutate(new_ALT = ifelse(REF=="T" | REF=="G", toupper(complement(ALT)), ALT)) %>% 
+  unite(REF.ALT, c("new_REF", "new_ALT"), sep=".") 
+C31aschild$X.CHROM <- as.factor(C31aschild$X.CHROM)
+
+C32aschild <- masked_C32aschild %>% 
+  mutate(INFO_loConfDeNovo=as.character(INFO_loConfDeNovo)) %>%
+  mutate(Sample_ID = case_when(
+    endsWith(INFO_hiConfDeNovo, "1079265") ~ "C32",
+    endsWith(INFO_loConfDeNovo, "1079265") ~ "C32")) %>%
+  rename(P3_GT=X1079262_GT, P3_DP=X1079262_DP, P3_GQ=X1079262_GQ, P3_AD=X1079262_AD,
+         S3_GT=X1079263_GT, S3_DP=X1079263_DP, S3_GQ=X1079263_GQ, S3_AD=X1079263_AD,
+         C32_GT=X1079265_GT, C32_DP=X1079265_DP, C32_GQ=X1079265_GQ, C32_AD=X1079265_AD) %>%
+  filter(INFO_QD > 2.0) %>% # GATK site specific hard filter 
+  filter(INFO_FS < 60.0) %>% # GATK site specific hard filter 
+  filter(INFO_MQRankSum > -12.5) %>% # GATK site specific hard filter 
+  filter(INFO_ReadPosRankSum > -8.0) %>% # GATK site specific hard filter 
+  filter(INFO_SOR < 3.0) %>% # GATK site specific hard filter 
+  filter(P3_DP > 12 & 
+         S3_DP > 12 & 
+         P3_DP < 120 & 
+         S3_DP < 120) %>% # filter parents on DP 
+  filter(P3_GQ >=20 & S3_GQ >=20) %>%  # filter parents on GQ 
+  filter(C32_DP > 12 & 
+         C32_DP < 120) %>% #min/max DP range for kid 
+  filter(C32_GQ >= 20) %>% #min GQ for kid 
+  mutate(P3_GT=gsub("\\|", "/", P3_GT)) %>% # change | to / for GT column
+  mutate(S3_GT=gsub("\\|", "/", S3_GT)) %>% # change | to / for GT column
+  mutate(C32_GT=gsub("\\|", "/", C32_GT)) %>% # change | to / for GT column
+  separate(P3_AD, c('P3_AD_1', 'P3_AD_2')) %>% # split AD column into 2
+  separate(S3_AD, c('S3_AD_1', 'S3_AD_2')) %>% # split AD column into 2
+  separate(C32_AD, c('C32_AD_1', 'C32_AD_2')) %>% # split AD column into 2
+  filter(!(P3_GT == "0/0" & P3_AD_2 > 0)) %>%  
+  filter(!(S3_GT == "0/0" & S3_AD_2 > 0)) %>% 
+  filter(!(P3_GT == "1/1" & P3_AD_1 > 0)) %>%  
+  filter(!(S3_GT == "1/1" & S3_AD_1 > 0)) %>% 
+  filter(!X.CHROM=="chrX") %>% 
+  mutate(AD_frac=(as.numeric(C32_AD_2)/(as.numeric(C32_AD_1)+as.numeric(C32_AD_2)))) %>% 
+  #filter(AD_frac > 0.3 & AD_frac < 0.7 & Sample_ID=="C32") %>% 
+  mutate(mut_ID = paste0("mutation", row_number(), sep="")) %>% 
+  mutate(new_REF = ifelse(REF=="T" | REF=="G", toupper(complement(REF)), REF)) %>% 
+  mutate(new_ALT = ifelse(REF=="T" | REF=="G", toupper(complement(ALT)), ALT)) %>% 
+  unite(REF.ALT, c("new_REF", "new_ALT"), sep=".") 
+C32aschild$X.CHROM <- as.factor(C32aschild$X.CHROM)
+
+## family 2
+
+C22asfather_C21askid <- masked_C22asfather_C21askid %>%
+  mutate(INFO_loConfDeNovo=as.character(INFO_loConfDeNovo)) %>%
+  mutate(INFO_hiConfDeNovo=as.character(INFO_hiConfDeNovo)) %>%
+  mutate(Sample_ID = case_when(
+    endsWith(INFO_hiConfDeNovo, "1079259") ~ "C21",
+    endsWith(INFO_loConfDeNovo, "1079259") ~ "C21")) %>% 
+  rename(P2_GT=X1079258_GT, P2_DP=X1079258_DP, P2_GQ=X1079258_GQ, P2_AD=X1079258_AD,
+         C21_GT=X1079259_GT, C21_DP=X1079259_DP, C21_GQ=X1079259_GQ, C21_AD=X1079259_AD,
+         C22_GT=X1079260_GT, C22_DP=X1079260_DP, C22_GQ=X1079260_GQ, C22_AD=X1079260_AD) %>%
+  filter(INFO_QD > 2.0) %>% # GATK site specific hard filter  
+  filter(INFO_FS < 60.0) %>% # GATK site specific hard filter 
+  filter(INFO_MQRankSum > -12.5) %>% # GATK site specific hard filter 
+  filter(INFO_ReadPosRankSum > -8.0) %>% # GATK site specific hard filter 
+  filter(INFO_SOR < 3.0) %>% # GATK site specific hard filter 
+  filter(P2_DP > 12 & 
+         C22_DP > 12 & 
+         P2_DP < 120 & 
+         C22_DP < 120) %>% # filter parents on DP 
+  filter(P2_GQ >=20 & C22_GQ >=20) %>%  # filter parents on GQ 
+  filter(C21_DP > 12 & 
+         C21_DP < 120) %>% #min/max DP range for kid 
+  filter(C21_GQ >= 20) %>% #min GQ for kid 
+  mutate(P2_GT=gsub("\\|", "/", P2_GT)) %>% # change | to / for GT column
+  mutate(C22_GT=gsub("\\|", "/", C22_GT)) %>% # change | to / for GT column
+  mutate(C21_GT=gsub("\\|", "/", C21_GT)) %>% # change | to / for GT column
+  separate(P2_AD, c('P2_AD_1', 'P2_AD_2')) %>% # split AD column into 2
+  separate(C22_AD, c('C22_AD_1', 'C22_AD_2')) %>% # split AD column into 2
+  separate(C21_AD, c('C21_AD_1', 'C21_AD_2')) %>% # split AD column into 2
+  filter(!(P2_GT == "0/0" & P2_AD_2 > 0)) %>%  
+  filter(!(C22_GT == "0/0" & C22_AD_2 > 0)) %>%   
+  filter(!(P2_GT == "1/1" & P2_AD_1 > 0)) %>%  
+  filter(!(C22_GT == "1/1" & C22_AD_1 > 0)) %>% 
+  filter(!X.CHROM=="chrX") %>% 
+  mutate(AD_frac=(as.numeric(C21_AD_2)/(as.numeric(C21_AD_1)+as.numeric(C21_AD_2)))) %>% 
+  #filter(AD_frac > 0.3 & AD_frac < 0.7 & Sample_ID=="C21") %>% 
+  mutate(mut_ID = paste0("mutation", row_number(), sep="")) %>% 
+  mutate(new_REF = ifelse(REF=="T" | REF=="G", toupper(complement(REF)), REF)) %>% 
+  mutate(new_ALT = ifelse(REF=="T" | REF=="G", toupper(complement(ALT)), ALT)) %>% 
+  unite(REF.ALT, c("new_REF", "new_ALT"), sep=".") 
+C22asfather_C21askid$X.CHROM <- as.factor(C22asfather_C21askid$X.CHROM)
+
+C23asfather_C21askid <- masked_C23asfather_C21askid %>% 
+  mutate(INFO_loConfDeNovo=as.character(INFO_loConfDeNovo)) %>%
+  mutate(INFO_hiConfDeNovo=as.character(INFO_hiConfDeNovo)) %>%
+  mutate(Sample_ID = case_when(
+    endsWith(INFO_hiConfDeNovo, "1079259") ~ "C21",
+    endsWith(INFO_loConfDeNovo, "1079259") ~ "C21")) %>% 
+  rename(P2_GT=X1079258_GT, P2_DP=X1079258_DP, P2_GQ=X1079258_GQ, P2_AD=X1079258_AD,
+         C21_GT=X1079259_GT, C21_DP=X1079259_DP, C21_GQ=X1079259_GQ, C21_AD=X1079259_AD,
+         C23_GT=X1079261_GT, C23_DP=X1079261_DP, C23_GQ=X1079261_GQ, C23_AD=X1079261_AD) %>%
+  filter(INFO_QD > 2.0) %>% # GATK site specific hard filter 
+  filter(INFO_FS < 60.0) %>% # GATK site specific hard filter 
+  filter(INFO_MQRankSum > -12.5) %>% # GATK site specific hard filter 
+  filter(INFO_ReadPosRankSum > -8.0) %>% # GATK site specific hard filter 
+  filter(INFO_SOR < 3.0) %>% # GATK site specific hard filter 
+  filter(P2_DP > 12 & 
+         C23_DP > 12 & 
+         P2_DP < 120 & 
+         C23_DP < 120) %>% # filter parents on DP 
+  filter(P2_GQ >=20 & C23_GQ >=20) %>%  # filter parents on GQ 
+  filter(C21_DP > 12 & 
+         C21_DP < 120) %>% #min/max DP range for kid 
+  filter(C21_GQ >= 20) %>% #min GQ for kid 
+  mutate(P2_GT=gsub("\\|", "/", P2_GT)) %>% # change | to / for GT column
+  mutate(C23_GT=gsub("\\|", "/", C23_GT)) %>% # change | to / for GT column
+  mutate(C21_GT=gsub("\\|", "/", C21_GT)) %>% # change | to / for GT column
+  separate(P2_AD, c('P2_AD_1', 'P2_AD_2')) %>% # split AD column into 2
+  separate(C23_AD, c('C23_AD_1', 'C23_AD_2')) %>% # split AD column into 2
+  separate(C21_AD, c('C21_AD_1', 'C21_AD_2')) %>% # split AD column into 2
+  filter(!(P2_GT == "0/0" & P2_AD_2 > 0)) %>%  
+  filter(!(C23_GT == "0/0" & C23_AD_2 > 0)) %>% 
+  filter(!(P2_GT == "1/1" & P2_AD_1 > 0)) %>%  
+  filter(!(C23_GT == "1/1" & C23_AD_1 > 0)) %>% 
+  filter(!X.CHROM=="chrX") %>% 
+  mutate(AD_frac=(as.numeric(C21_AD_2)/(as.numeric(C21_AD_1)+as.numeric(C21_AD_2)))) %>% 
+  #filter(AD_frac > 0.3 & AD_frac < 0.7 & Sample_ID=="C21") %>% 
+  mutate(mut_ID = paste0("mutation", row_number(), sep="")) %>% 
+  mutate(new_REF = ifelse(REF=="T" | REF=="G", toupper(complement(REF)), REF)) %>% 
+  mutate(new_ALT = ifelse(REF=="T" | REF=="G", toupper(complement(ALT)), ALT)) %>% 
+  unite(REF.ALT, c("new_REF", "new_ALT"), sep=".") 
+C23asfather_C21askid$X.CHROM <- as.factor(C23asfather_C21askid$X.CHROM)
+
+C21asfather_C22askid <- masked_C21asfather_C22askid %>% 
+  mutate(INFO_hiConfDeNovo=as.character(INFO_hiConfDeNovo)) %>%
+  mutate(INFO_loConfDeNovo=as.character(INFO_loConfDeNovo)) %>%
+  mutate(Sample_ID = case_when(
+    endsWith(INFO_hiConfDeNovo, "1079260") ~ "C22",
+    endsWith(INFO_loConfDeNovo, "1079260") ~ "C22")) %>% 
+  rename(P2_GT=X1079258_GT, P2_DP=X1079258_DP, P2_GQ=X1079258_GQ, P2_AD=X1079258_AD,
+         C21_GT=X1079259_GT, C21_DP=X1079259_DP, C21_GQ=X1079259_GQ, C21_AD=X1079259_AD,
+         C22_GT=X1079260_GT, C22_DP=X1079260_DP, C22_GQ=X1079260_GQ, C22_AD=X1079260_AD) %>%
+  filter(INFO_QD > 2.0) %>% # GATK site specific hard filter 
+  filter(INFO_FS < 60.0) %>% # GATK site specific hard filter 
+  filter(INFO_MQRankSum > -12.5) %>% # GATK site specific hard filter 
+  filter(INFO_ReadPosRankSum > -8.0) %>% # GATK site specific hard filter 
+  filter(INFO_SOR < 3.0) %>% # GATK site specific hard filter 
+  filter(P2_DP > 12 & 
+         C21_DP > 12 & 
+         P2_DP < 120 & 
+         C21_DP < 120) %>% # filter parents on DP 
+  filter(P2_GQ >=20 & C21_GQ >=20) %>%  # filter parents on GQ 
+  filter(C22_DP > 12 & 
+         C22_DP < 120) %>% #min/max DP range for kid 
+  filter(C22_GQ >= 20) %>% #min GQ for kid 
+  mutate(P2_GT=gsub("\\|", "/", P2_GT)) %>% # change | to / for GT column
+  mutate(C21_GT=gsub("\\|", "/", C21_GT)) %>% # change | to / for GT column
+  mutate(C22_GT=gsub("\\|", "/", C22_GT)) %>% # change | to / for GT column
+  separate(P2_AD, c('P2_AD_1', 'P2_AD_2')) %>% # split AD column into 2
+  separate(C21_AD, c('C21_AD_1', 'C21_AD_2')) %>% # split AD column into 2
+  separate(C22_AD, c('C22_AD_1', 'C22_AD_2')) %>% # split AD column into 2
+  filter(!(P2_GT == "0/0" & P2_AD_2 > 0)) %>%  
+  filter(!(C21_GT == "0/0" & C21_AD_2 > 0)) %>% 
+  filter(!(P2_GT == "1/1" & P2_AD_1 > 0)) %>%  
+  filter(!(C21_GT == "1/1" & C21_AD_1 > 0)) %>% 
+  filter(!X.CHROM=="chrX") %>% 
+  mutate(AD_frac=(as.numeric(C22_AD_2)/(as.numeric(C22_AD_1)+as.numeric(C22_AD_2)))) %>% 
+  #filter(AD_frac > 0.3 & AD_frac < 0.7 & Sample_ID=="C22") %>%   
+  mutate(mut_ID = paste0("mutation", row_number(), sep="")) %>% 
+  mutate(new_REF = ifelse(REF=="T" | REF=="G", toupper(complement(REF)), REF)) %>% 
+  mutate(new_ALT = ifelse(REF=="T" | REF=="G", toupper(complement(ALT)), ALT)) %>% 
+  unite(REF.ALT, c("new_REF", "new_ALT"), sep=".") 
+C21asfather_C22askid$X.CHROM <- as.factor(C21asfather_C22askid$X.CHROM)
+
+C23asfather_C22askid <- masked_C23asfather_C22askid %>% 
+  mutate(INFO_hiConfDeNovo=as.character(INFO_hiConfDeNovo)) %>%
+  mutate(INFO_loConfDeNovo=as.character(INFO_loConfDeNovo)) %>%
+  mutate(Sample_ID = case_when(
+    endsWith(INFO_hiConfDeNovo, "1079260") ~ "C22",
+    endsWith(INFO_loConfDeNovo, "1079260") ~ "C22")) %>% 
+  rename(P2_GT=X1079258_GT, P2_DP=X1079258_DP, P2_GQ=X1079258_GQ, P2_AD=X1079258_AD,
+         C22_GT=X1079260_GT, C22_DP=X1079260_DP, C22_GQ=X1079260_GQ, C22_AD=X1079260_AD,
+         C23_GT=X1079261_GT, C23_DP=X1079261_DP, C23_GQ=X1079261_GQ, C23_AD=X1079261_AD) %>%
+  filter(INFO_QD > 2.0) %>% # GATK site specific hard filter 
+  filter(INFO_FS < 60.0) %>% # GATK site specific hard filter 
+  filter(INFO_MQRankSum > -12.5) %>% # GATK site specific hard filter 
+  filter(INFO_ReadPosRankSum > -8.0) %>% # GATK site specific hard filter 
+  filter(INFO_SOR < 3.0) %>% # GATK site specific hard filter 
+  filter(P2_DP > 12 & 
+         C23_DP > 12 & 
+         P2_DP < 120 & 
+         C23_DP < 120) %>% # filter parents on DP 
+  filter(P2_GQ >=20 & C23_GQ >=20) %>%  # filter parents on GQ 
+  filter(C22_DP > 12 & 
+         C22_DP < 120) %>% #min/max DP range for kid 
+  filter(C22_GQ >= 20) %>% #min GQ for kid 
+  mutate(P2_GT=gsub("\\|", "/", P2_GT)) %>% # change | to / for GT column
+  mutate(C23_GT=gsub("\\|", "/", C23_GT)) %>% # change | to / for GT column
+  mutate(C22_GT=gsub("\\|", "/", C22_GT)) %>% # change | to / for GT column
+  separate(P2_AD, c('P2_AD_1', 'P2_AD_2')) %>% # split AD column into 2
+  separate(C23_AD, c('C23_AD_1', 'C23_AD_2')) %>% # split AD column into 2
+  separate(C22_AD, c('C22_AD_1', 'C22_AD_2')) %>% # split AD column into 2
+  filter(!(P2_GT == "0/0" & P2_AD_2 > 0)) %>%    
+  filter(!(C23_GT == "0/0" & C23_AD_2 > 0)) %>% 
+  filter(!(P2_GT == "1/1" & P2_AD_1 > 0)) %>%  
+  filter(!(C23_GT == "1/1" & C23_AD_1 > 0)) %>% 
+  filter(!X.CHROM=="chrX") %>% 
+  mutate(AD_frac=(as.numeric(C22_AD_2)/(as.numeric(C22_AD_1)+as.numeric(C22_AD_2)))) %>% 
+  #filter(AD_frac > 0.3 & AD_frac < 0.7 & Sample_ID=="C22") %>% 
+  mutate(mut_ID = paste0("mutation", row_number(), sep="")) %>% 
+  mutate(new_REF = ifelse(REF=="T" | REF=="G", toupper(complement(REF)), REF)) %>% 
+  mutate(new_ALT = ifelse(REF=="T" | REF=="G", toupper(complement(ALT)), ALT)) %>% 
+  unite(REF.ALT, c("new_REF", "new_ALT"), sep=".") 
+C23asfather_C22askid$X.CHROM <- as.factor(C23asfather_C22askid$X.CHROM)
+
+C21asfather_C23askid <- masked_C21asfather_C23askid %>% 
+  mutate(INFO_hiConfDeNovo=as.character(INFO_hiConfDeNovo)) %>%
+  mutate(INFO_loConfDeNovo=as.character(INFO_loConfDeNovo)) %>%
+  mutate(Sample_ID = case_when(
+    endsWith(INFO_hiConfDeNovo, "1079261") ~ "C23",
+    endsWith(INFO_loConfDeNovo, "1079261") ~ "C23")) %>% 
+  rename(P2_GT=X1079258_GT, P2_DP=X1079258_DP, P2_GQ=X1079258_GQ, P2_AD=X1079258_AD,
+         C21_GT=X1079259_GT, C21_DP=X1079259_DP, C21_GQ=X1079259_GQ, C21_AD=X1079259_AD,
+         C23_GT=X1079261_GT, C23_DP=X1079261_DP, C23_GQ=X1079261_GQ, C23_AD=X1079261_AD) %>%
+  filter(INFO_QD > 2.0) %>% # GATK site specific hard filter 
+  filter(INFO_FS < 60.0) %>% # GATK site specific hard filter 
+  filter(INFO_MQRankSum > -12.5) %>% # GATK site specific hard filter 
+  filter(INFO_ReadPosRankSum > -8.0) %>% # GATK site specific hard filter 
+  filter(INFO_SOR < 3.0) %>% # GATK site specific hard filter 
+  filter(P2_DP > 12 & 
+         C21_DP > 12 & 
+         P2_DP < 120 & 
+         C21_DP < 120) %>% # filter parents on DP 
+  filter(P2_GQ >=20 & C21_GQ >=20) %>%  # filter parents on GQ 
+  filter(C23_DP > 12 & 
+         C23_DP < 120) %>% #min/max DP range for kid 
+  filter(C23_GQ >= 20) %>% #min GQ for kid 
+  mutate(P2_GT=gsub("\\|", "/", P2_GT)) %>% # change | to / for GT column
+  mutate(C21_GT=gsub("\\|", "/", C21_GT)) %>% # change | to / for GT column
+  mutate(C23_GT=gsub("\\|", "/", C23_GT)) %>% # change | to / for GT column
+  separate(P2_AD, c('P2_AD_1', 'P2_AD_2')) %>% # split AD column into 2
+  separate(C21_AD, c('C21_AD_1', 'C21_AD_2')) %>% # split AD column into 2
+  separate(C23_AD, c('C23_AD_1', 'C23_AD_2')) %>% # split AD column into 2
+  filter(!(P2_GT == "0/0" & P2_AD_2 > 0)) %>%    
+  filter(!(C21_GT == "0/0" & C21_AD_2 > 0)) %>%  
+  filter(!(P2_GT == "1/1" & P2_AD_1 > 0)) %>%  
+  filter(!(C21_GT == "1/1" & C21_AD_1 > 0)) %>% 
+  filter(!X.CHROM=="chrX") %>% 
+  mutate(AD_frac=(as.numeric(C23_AD_2)/(as.numeric(C23_AD_1)+as.numeric(C23_AD_2)))) %>% 
+  #filter(AD_frac > 0.3 & AD_frac < 0.7 & Sample_ID=="C23") %>% 
+  mutate(mut_ID = paste0("mutation", row_number(), sep="")) %>% 
+  mutate(new_REF = ifelse(REF=="T" | REF=="G", toupper(complement(REF)), REF)) %>% 
+  mutate(new_ALT = ifelse(REF=="T" | REF=="G", toupper(complement(ALT)), ALT)) %>% 
+  unite(REF.ALT, c("new_REF", "new_ALT"), sep=".") 
+C21asfather_C23askid$X.CHROM <- as.factor(C21asfather_C23askid$X.CHROM)
+
+C22asfather_C23askid <- masked_C22asfather_C23askid %>% 
+  mutate(INFO_hiConfDeNovo=as.character(INFO_hiConfDeNovo)) %>%
+  mutate(INFO_loConfDeNovo=as.character(INFO_loConfDeNovo)) %>%
+  mutate(Sample_ID = case_when(
+    endsWith(INFO_hiConfDeNovo, "1079261") ~ "C23",
+    endsWith(INFO_loConfDeNovo, "1079261") ~ "C23")) %>% 
+  rename(P2_GT=X1079258_GT, P2_DP=X1079258_DP, P2_GQ=X1079258_GQ, P2_AD=X1079258_AD,
+         C22_GT=X1079260_GT, C22_DP=X1079260_DP, C22_GQ=X1079260_GQ, C22_AD=X1079260_AD,C23_GT=X1079261_GT, C23_DP=X1079261_DP, C23_GQ=X1079261_GQ, C23_AD=X1079261_AD) %>%
+  filter(INFO_QD > 2.0) %>% # GATK site specific hard filter 
+  filter(INFO_FS < 60.0) %>% # GATK site specific hard filter 
+  filter(INFO_MQRankSum > -12.5) %>% # GATK site specific hard filter 
+  filter(INFO_ReadPosRankSum > -8.0) %>% # GATK site specific hard filter 
+  filter(INFO_SOR < 3.0) %>% # GATK site specific hard filter 
+  filter(P2_DP > 12 & 
+         C22_DP > 12 & 
+         P2_DP < 120 & 
+         C22_DP < 120) %>% # filter parents on DP 
+  filter(P2_GQ >=20 & C22_GQ >=20) %>%  # filter parents on GQ 
+  filter(C23_DP > 12 & 
+         C23_DP < 120) %>% #min/max DP range for kid 
+  filter(C23_GQ >= 20) %>% #min GQ for kid 
+  mutate(P2_GT=gsub("\\|", "/", P2_GT)) %>% # change | to / for GT column
+  mutate(C22_GT=gsub("\\|", "/", C22_GT)) %>% # change | to / for GT column
+  mutate(C23_GT=gsub("\\|", "/", C23_GT)) %>% # change | to / for GT column
+  separate(P2_AD, c('P2_AD_1', 'P2_AD_2')) %>% # split AD column into 2
+  separate(C22_AD, c('C22_AD_1', 'C22_AD_2')) %>% # split AD column into 2
+  separate(C23_AD, c('C23_AD_1', 'C23_AD_2')) %>% # split AD column into 2
+  filter(!(P2_GT == "0/0" & P2_AD_2 > 0)) %>%    
+  filter(!(C22_GT == "0/0" & C22_AD_2 > 0)) %>%  
+  filter(!(P2_GT == "1/1" & P2_AD_1 > 0)) %>%   
+  filter(!(C22_GT == "1/1" & C22_AD_1 > 0)) %>% 
+  filter(!X.CHROM=="chrX") %>% 
+  mutate(AD_frac=(as.numeric(C23_AD_2)/(as.numeric(C23_AD_1)+as.numeric(C23_AD_2)))) %>% 
+  #filter(AD_frac > 0.3 & AD_frac < 0.7 & Sample_ID=="C23") %>% 
+  mutate(mut_ID = paste0("mutation", row_number(), sep="")) %>% 
+  mutate(new_REF = ifelse(REF=="T" | REF=="G", toupper(complement(REF)), REF)) %>% 
+  mutate(new_ALT = ifelse(REF=="T" | REF=="G", toupper(complement(ALT)), ALT)) %>% 
+  unite(REF.ALT, c("new_REF", "new_ALT"), sep=".") 
+C22asfather_C23askid$X.CHROM <- as.factor(C22asfather_C23askid$X.CHROM)
+
+## family 4
+
+C42asfather_C41askid <- masked_C42asfather_C41askid %>%
+  mutate(INFO_hiConfDeNovo=as.character(INFO_hiConfDeNovo)) %>%
+  mutate(INFO_loConfDeNovo=as.character(INFO_loConfDeNovo)) %>%
+  mutate(Sample_ID = case_when(
+    endsWith(INFO_hiConfDeNovo, "1079267") ~ "C41",
+    endsWith(INFO_loConfDeNovo, "1079267") ~ "C41")) %>% 
+  rename(P4_GT=X1079266_GT, P4_DP=X1079266_DP, P4_GQ=X1079266_GQ, P4_AD=X1079266_AD,
+         C41_GT=X1079267_GT, C41_DP=X1079267_DP, C41_GQ=X1079267_GQ, C41_AD=X1079267_AD,
+         C42_GT=X1079268_GT, C42_DP=X1079268_DP, C42_GQ=X1079268_GQ, C42_AD=X1079268_AD) %>%
+  filter(INFO_QD > 2.0) %>% # GATK site specific hard filter 
+  filter(INFO_FS < 60.0) %>% # GATK site specific hard filter 
+  filter(INFO_MQRankSum > -12.5) %>% # GATK site specific hard filter 
+  filter(INFO_ReadPosRankSum > -8.0) %>% # GATK site specific hard filter 
+  filter(INFO_SOR < 3.0) %>% # GATK site specific hard filter
+  filter(P4_DP > 12 & 
+         C42_DP > 12 & 
+         P4_DP < 120 & 
+         C42_DP < 120) %>% # filter parents on DP 
+  filter(P4_GQ >=20 & C42_GQ >=20) %>%  # filter parents on GQ 
+  filter(C41_DP > 12 & 
+         C41_DP < 120) %>% #min/max DP range for kid 
+  filter(C41_GQ >= 20) %>% #min GQ for kid 
+  mutate(P4_GT=gsub("\\|", "/", P4_GT)) %>% # change | to / for GT column
+  mutate(C42_GT=gsub("\\|", "/", C42_GT)) %>% # change | to / for GT column
+  mutate(C41_GT=gsub("\\|", "/", C41_GT)) %>% # change | to / for GT column
+  separate(P4_AD, c('P4_AD_1', 'P4_AD_2')) %>% # split AD column into 2
+  separate(C42_AD, c('C42_AD_1', 'C42_AD_2')) %>% # split AD column into 2
+  separate(C41_AD, c('C41_AD_1', 'C41_AD_2')) %>% # split AD column into 2
+  filter(!(P4_GT == "0/0" & P4_AD_2 > 0)) %>%   
+  filter(!(C42_GT == "0/0" & C42_AD_2 > 0)) %>%  
+  filter(!(P4_GT == "1/1" & P4_AD_1 > 0)) %>%  
+  filter(!(C42_GT == "1/1" & C42_AD_1 > 0)) %>% 
+  filter(!X.CHROM=="chrX") %>% 
+  mutate(AD_frac=(as.numeric(C41_AD_2)/(as.numeric(C41_AD_1)+as.numeric(C41_AD_2)))) %>% 
+  #filter(AD_frac > 0.3 & AD_frac < 0.7 & Sample_ID=="C41") %>% 
+  mutate(mut_ID = paste0("mutation", row_number(), sep="")) %>% 
+  mutate(new_REF = ifelse(REF=="T" | REF=="G", toupper(complement(REF)), REF)) %>% 
+  mutate(new_ALT = ifelse(REF=="T" | REF=="G", toupper(complement(ALT)), ALT)) %>% 
+  unite(REF.ALT, c("new_REF", "new_ALT"), sep=".") 
+C42asfather_C41askid$X.CHROM <- as.factor(C42asfather_C41askid$X.CHROM)
+
+C41asfather_C42askid <- masked_C41asfather_C42askid %>% 
+  mutate(INFO_hiConfDeNovo=as.character(INFO_hiConfDeNovo)) %>%
+  mutate(INFO_loConfDeNovo=as.character(INFO_loConfDeNovo)) %>%
+  mutate(Sample_ID = case_when(
+    endsWith(INFO_hiConfDeNovo, "1079268") ~ "C42",
+    endsWith(INFO_loConfDeNovo, "1079268") ~ "C42")) %>% 
+  rename(P4_GT=X1079266_GT, P4_DP=X1079266_DP, P4_GQ=X1079266_GQ, P4_AD=X1079266_AD,
+         C41_GT=X1079267_GT, C41_DP=X1079267_DP, C41_GQ=X1079267_GQ, C41_AD=X1079267_AD,
+         C42_GT=X1079268_GT, C42_DP=X1079268_DP, C42_GQ=X1079268_GQ, C42_AD=X1079268_AD) %>%
+  filter(INFO_QD > 2.0) %>% # GATK site specific hard filter 
+  filter(INFO_FS < 60.0) %>% # GATK site specific hard filter 
+  filter(INFO_MQRankSum > -12.5) %>% # GATK site specific hard filter 
+  filter(INFO_ReadPosRankSum > -8.0) %>% # GATK site specific hard filter 
+  filter(INFO_SOR < 3.0) %>% # GATK site specific hard filter 
+  filter(P4_DP > 12 & 
+         C41_DP > 12 & 
+         P4_DP < 120 & 
+         C41_DP < 120) %>% # filter parents on DP 
+  filter(P4_GQ >=20 & C41_GQ >=20) %>%  # filter parents on GQ 
+  filter(C42_DP > 12 & 
+         C42_DP < 120) %>% #min/max DP range for kid 
+  filter(C42_GQ >= 20) %>% #min GQ for kid 
+  mutate(P4_GT=gsub("\\|", "/", P4_GT)) %>% # change | to / for GT column
+  mutate(C42_GT=gsub("\\|", "/", C42_GT)) %>% # change | to / for GT column
+  mutate(C41_GT=gsub("\\|", "/", C41_GT)) %>% # change | to / for GT column
+  separate(P4_AD, c('P4_AD_1', 'P4_AD_2')) %>% # split AD column into 2
+  separate(C42_AD, c('C42_AD_1', 'C42_AD_2')) %>% # split AD column into 2
+  separate(C41_AD, c('C41_AD_1', 'C41_AD_2')) %>% # split AD column into 2
+  filter(!(P4_GT == "0/0" & P4_AD_2 > 0)) %>%  
+  filter(!(C41_GT == "0/0" & C41_AD_2 > 0)) %>% 
+  filter(!(P4_GT == "1/1" & P4_AD_1 > 0)) %>%  
+  filter(!(C41_GT == "1/1" & C41_AD_1 > 0)) %>% 
+  filter(!X.CHROM=="chrX") %>% 
+  mutate(AD_frac=(as.numeric(C42_AD_2)/(as.numeric(C42_AD_1)+as.numeric(C42_AD_2)))) %>% 
+  #filter(AD_frac > 0.3 & AD_frac < 0.7 & Sample_ID=="C42") %>% 
+  mutate(mut_ID = paste0("mutation", row_number(), sep="")) %>% 
+  mutate(new_REF = ifelse(REF=="T" | REF=="G", toupper(complement(REF)), REF)) %>% 
+  mutate(new_ALT = ifelse(REF=="T" | REF=="G", toupper(complement(ALT)), ALT)) %>% 
+  unite(REF.ALT, c("new_REF", "new_ALT"), sep=".") 
+C41asfather_C42askid$X.CHROM <- as.factor(C41asfather_C42askid$X.CHROM)
+
+## P1
+
+P2P3asparents_P1askid <- masked_P2P3asparents_P1askid %>% 
+  mutate(INFO_hiConfDeNovo=as.character(INFO_hiConfDeNovo)) %>%
+  mutate(INFO_loConfDeNovo=as.character(INFO_loConfDeNovo)) %>%
+  mutate(Sample_ID = case_when(
+    endsWith(INFO_hiConfDeNovo, "1079254") ~ "P1",
+    endsWith(INFO_loConfDeNovo, "1079254") ~ "P1")) %>% 
+  rename(P1_GT=X1079254_GT, P1_DP=X1079254_DP, P1_GQ=X1079254_GQ, P1_AD=X1079254_AD,
+         P2_GT=X1079258_GT, P2_DP=X1079258_DP, P2_GQ=X1079258_GQ, P2_AD=X1079258_AD,
+         P3_GT=X1079262_GT, P3_DP=X1079262_DP, P3_GQ=X1079262_GQ, P3_AD=X1079262_AD) %>%
+  filter(INFO_QD > 2.0) %>% # GATK site specific hard filter 
+  filter(INFO_FS < 60.0) %>% # GATK site specific hard filter 
+  filter(INFO_MQRankSum > -12.5) %>% # GATK site specific hard filter 
+  filter(INFO_ReadPosRankSum > -8.0) %>% # GATK site specific hard filter 
+  filter(INFO_SOR < 3.0) %>% # GATK site specific hard filter 
+  filter(P2_DP > 12 & 
+         P3_DP > 12 & 
+         P2_DP < 120 & 
+         P3_DP < 120) %>% # filter parents on DP 
+  filter(P2_GQ >=20 & P3_GQ >=20) %>%  # filter parents on GQ 
+  filter(P1_DP > 12 & 
+         P1_DP < 120) %>% #min/max DP range for kid 
+  filter(P1_GQ >= 20) %>% #min GQ for kid 
+  mutate(P1_GT=gsub("\\|", "/", P1_GT)) %>% # change | to / for GT column
+  mutate(P2_GT=gsub("\\|", "/", P2_GT)) %>% # change | to / for GT column
+  mutate(P3_GT=gsub("\\|", "/", P3_GT)) %>% # change | to / for GT column
+  separate(P1_AD, c('P1_AD_1', 'P1_AD_2')) %>% # split AD column into 2
+  separate(P2_AD, c('P2_AD_1', 'P2_AD_2')) %>% # split AD column into 2
+  separate(P3_AD, c('P3_AD_1', 'P3_AD_2')) %>% # split AD column into 2
+  filter(!(P2_GT == "0/0" & P2_AD_2 > 0)) %>%    
+  filter(!(P3_GT == "0/0" & P3_AD_2 > 0)) %>%  
+  filter(!(P2_GT == "1/1" & P2_AD_1 > 0)) %>%  
+  filter(!(P3_GT == "1/1" & P3_AD_1 > 0)) %>% 
+  filter(!X.CHROM=="chrX") %>% 
+  mutate(AD_frac=(as.numeric(P1_AD_2)/(as.numeric(P1_AD_1)+as.numeric(P1_AD_2)))) %>% 
+  #filter(AD_frac > 0.3 & AD_frac < 0.7 & Sample_ID=="P1") %>% 
+  mutate(mut_ID = paste0("mutation", row_number(), sep="")) %>% 
+  mutate(new_REF = ifelse(REF=="T" | REF=="G", toupper(complement(REF)), REF)) %>% 
+  mutate(new_ALT = ifelse(REF=="T" | REF=="G", toupper(complement(ALT)), ALT)) %>% 
+  unite(REF.ALT, c("new_REF", "new_ALT"), sep=".") 
+P2P3asparents_P1askid$X.CHROM <- as.factor(P2P3asparents_P1askid$X.CHROM)
+
+P2P4asparents_P1askid <- masked_P2P4asparents_P1askid %>% 
+  mutate(INFO_hiConfDeNovo=as.character(INFO_hiConfDeNovo)) %>%
+  mutate(INFO_loConfDeNovo=as.character(INFO_loConfDeNovo)) %>%
+  mutate(Sample_ID = case_when(
+    endsWith(INFO_hiConfDeNovo, "1079254") ~ "P1",
+    endsWith(INFO_loConfDeNovo, "1079254") ~ "P1")) %>% 
+  rename(P1_GT=X1079254_GT, P1_DP=X1079254_DP, P1_GQ=X1079254_GQ, P1_AD=X1079254_AD,
+         P2_GT=X1079258_GT, P2_DP=X1079258_DP, P2_GQ=X1079258_GQ, P2_AD=X1079258_AD,
+         P4_GT=X1079266_GT, P4_DP=X1079266_DP, P4_GQ=X1079266_GQ, P4_AD=X1079266_AD) %>%
+  filter(INFO_QD > 2.0) %>% # GATK site specific hard filter 
+  filter(INFO_FS < 60.0) %>% # GATK site specific hard filter 
+  filter(INFO_MQRankSum > -12.5) %>% # GATK site specific hard filter 
+  filter(INFO_ReadPosRankSum > -8.0) %>% # GATK site specific hard filter 
+  filter(INFO_SOR < 3.0) %>% # GATK site specific hard filter 
+  filter(P2_DP > 12 & 
+         P4_DP > 12 & 
+         P2_DP < 120 & 
+         P4_DP < 120) %>% # filter parents on DP 
+  filter(P2_GQ >=20 & P4_GQ >=20) %>%  # filter parents on GQ 
+  filter(P1_DP > 12 & 
+         P1_DP < 120) %>% #min/max DP range for kid 
+  filter(P1_GQ >= 20) %>% #min GQ for kid 
+  mutate(P1_GT=gsub("\\|", "/", P1_GT)) %>% # change | to / for GT column
+  mutate(P2_GT=gsub("\\|", "/", P2_GT)) %>% # change | to / for GT column
+  mutate(P4_GT=gsub("\\|", "/", P4_GT)) %>% # change | to / for GT column
+  separate(P1_AD, c('P1_AD_1', 'P1_AD_2')) %>% # split AD column into 2
+  separate(P2_AD, c('P2_AD_1', 'P2_AD_2')) %>% # split AD column into 2
+  separate(P4_AD, c('P4_AD_1', 'P4_AD_2')) %>% # split AD column into 2
+  filter(!(P2_GT == "0/0" & P2_AD_2 > 0)) %>%  
+  filter(!(P4_GT == "0/0" & P4_AD_2 > 0)) %>% 
+  filter(!(P2_GT == "1/1" & P2_AD_1 > 0)) %>%  
+  filter(!(P4_GT == "1/1" & P4_AD_1 > 0)) %>% 
+  filter(!X.CHROM=="chrX") %>% 
+  mutate(AD_frac=(as.numeric(P1_AD_2)/(as.numeric(P1_AD_1)+as.numeric(P1_AD_2)))) %>% 
+  #filter(AD_frac > 0.3 & AD_frac < 0.7 & Sample_ID=="P1") %>% 
+  mutate(mut_ID = paste0("mutation", row_number(), sep="")) %>% 
+  mutate(new_REF = ifelse(REF=="T" | REF=="G", toupper(complement(REF)), REF)) %>% 
+  mutate(new_ALT = ifelse(REF=="T" | REF=="G", toupper(complement(ALT)), ALT)) %>% 
+  unite(REF.ALT, c("new_REF", "new_ALT"), sep=".") 
+P2P4asparents_P1askid$X.CHROM <- as.factor(P2P4asparents_P1askid$X.CHROM)
+
+P3P4asparents_P1askid <- masked_P3P4asparents_P1askid %>% 
+  mutate(INFO_hiConfDeNovo=as.character(INFO_hiConfDeNovo)) %>%
+  mutate(INFO_loConfDeNovo=as.character(INFO_loConfDeNovo)) %>%
+  mutate(Sample_ID = case_when(
+    endsWith(INFO_hiConfDeNovo, "1079254") ~ "P1",
+    endsWith(INFO_loConfDeNovo, "1079254") ~ "P1")) %>% 
+  rename(P1_GT=X1079254_GT, P1_DP=X1079254_DP, P1_GQ=X1079254_GQ, P1_AD=X1079254_AD,
+         P3_GT=X1079262_GT, P3_DP=X1079262_DP, P3_GQ=X1079262_GQ, P3_AD=X1079262_AD,
+         P4_GT=X1079266_GT, P4_DP=X1079266_DP, P4_GQ=X1079266_GQ, P4_AD=X1079266_AD) %>%
+  filter(INFO_QD > 2.0) %>% # GATK site specific hard filter 
+  filter(INFO_FS < 60.0) %>% # GATK site specific hard filter 
+  filter(INFO_MQRankSum > -12.5) %>% # GATK site specific hard filter 
+  filter(INFO_ReadPosRankSum > -8.0) %>% # GATK site specific hard filter 
+  filter(INFO_SOR < 3.0) %>% # GATK site specific hard filter 
+  filter(P3_DP > 12 & 
+         P4_DP > 12 & 
+         P3_DP < 120 & 
+         P4_DP < 120) %>% # filter parents on DP 
+  filter(P3_GQ >=20 & P4_GQ >=20) %>%  # filter parents on GQ 
+  filter(P1_DP > 12 & 
+         P1_DP < 120) %>% #min/max DP range for kid 
+  filter(P1_GQ >= 20) %>% #min GQ for kid 
+  mutate(P1_GT=gsub("\\|", "/", P1_GT)) %>% # change | to / for GT column
+  mutate(P3_GT=gsub("\\|", "/", P3_GT)) %>% # change | to / for GT column
+  mutate(P4_GT=gsub("\\|", "/", P4_GT)) %>% # change | to / for GT column
+  separate(P1_AD, c('P1_AD_1', 'P1_AD_2')) %>% # split AD column into 2
+  separate(P3_AD, c('P3_AD_1', 'P3_AD_2')) %>% # split AD column into 2
+  separate(P4_AD, c('P4_AD_1', 'P4_AD_2')) %>% # split AD column into 2
+  filter(!(P3_GT == "0/0" & P3_AD_2 > 0)) %>%  
+  filter(!(P4_GT == "0/0" & P4_AD_2 > 0)) %>% 
+  filter(!(P3_GT == "1/1" & P3_AD_1 > 0)) %>%  
+  filter(!(P4_GT == "1/1" & P4_AD_1 > 0)) %>% 
+  filter(!X.CHROM=="chrX") %>% 
+  mutate(AD_frac=(as.numeric(P1_AD_2)/(as.numeric(P1_AD_1)+as.numeric(P1_AD_2)))) %>% 
+  #filter(AD_frac > 0.3 & AD_frac < 0.7 & Sample_ID=="P1") %>% 
+  mutate(mut_ID = paste0("mutation", row_number(), sep="")) %>% 
+  mutate(new_REF = ifelse(REF=="T" | REF=="G", toupper(complement(REF)), REF)) %>% 
+  mutate(new_ALT = ifelse(REF=="T" | REF=="G", toupper(complement(ALT)), ALT)) %>% 
+  unite(REF.ALT, c("new_REF", "new_ALT"), sep=".") 
+P3P4asparents_P1askid$X.CHROM <- as.factor(P3P4asparents_P1askid$X.CHROM)
+
+## P2
+P1P3asparents_P2askid <- masked_P1P3asparents_P2askid %>% 
+  mutate(INFO_hiConfDeNovo=as.character(INFO_hiConfDeNovo)) %>%
+  mutate(INFO_loConfDeNovo=as.character(INFO_loConfDeNovo)) %>%
+  mutate(Sample_ID = case_when(
+    endsWith(INFO_hiConfDeNovo, "1079258") ~ "P2",
+    endsWith(INFO_loConfDeNovo, "1079258") ~ "P2")) %>% 
+  rename(P1_GT=X1079254_GT, P1_DP=X1079254_DP, P1_GQ=X1079254_GQ, P1_AD=X1079254_AD,
+         P2_GT=X1079258_GT, P2_DP=X1079258_DP, P2_GQ=X1079258_GQ, P2_AD=X1079258_AD,
+         P3_GT=X1079262_GT, P3_DP=X1079262_DP, P3_GQ=X1079262_GQ, P3_AD=X1079262_AD) %>%
+  filter(INFO_QD > 2.0) %>% # GATK site specific hard filter 
+  filter(INFO_FS < 60.0) %>% # GATK site specific hard filter 
+  filter(INFO_MQRankSum > -12.5) %>% # GATK site specific hard filter 
+  filter(INFO_ReadPosRankSum > -8.0) %>% # GATK site specific hard filter 
+  filter(INFO_SOR < 3.0) %>% # GATK site specific hard filter 
+  filter(P1_DP > 12 & 
+         P3_DP > 12 & 
+         P1_DP < 120 & 
+         P3_DP < 120) %>% # filter parents on DP 
+  filter(P1_GQ >=20 & P3_GQ >=20) %>%  # filter parents on GQ 
+  filter(P2_DP > 12 & 
+         P2_DP < 120) %>% #min/max DP range for kid 
+  filter(P2_GQ >= 20) %>% #min GQ for kid 
+  mutate(P1_GT=gsub("\\|", "/", P1_GT)) %>% # change | to / for GT column
+  mutate(P2_GT=gsub("\\|", "/", P2_GT)) %>% # change | to / for GT column
+  mutate(P3_GT=gsub("\\|", "/", P3_GT)) %>% # change | to / for GT column
+  separate(P1_AD, c('P1_AD_1', 'P1_AD_2')) %>% # split AD column into 2
+  separate(P2_AD, c('P2_AD_1', 'P2_AD_2')) %>% # split AD column into 2
+  separate(P3_AD, c('P3_AD_1', 'P3_AD_2')) %>% # split AD column into 2
+  filter(!(P1_GT == "0/0" & P1_AD_2 > 0)) %>%    
+  filter(!(P3_GT == "0/0" & P3_AD_2 > 0)) %>%  
+  filter(!(P1_GT == "1/1" & P1_AD_1 > 0)) %>%  
+  filter(!(P3_GT == "1/1" & P3_AD_1 > 0)) %>% 
+  filter(!X.CHROM=="chrX") %>% 
+  mutate(AD_frac=(as.numeric(P2_AD_2)/(as.numeric(P2_AD_1)+as.numeric(P2_AD_2)))) %>% 
+  #filter(AD_frac > 0.3 & AD_frac < 0.7 & Sample_ID=="P2") %>% 
+  mutate(mut_ID = paste0("mutation", row_number(), sep="")) %>% 
+  mutate(new_REF = ifelse(REF=="T" | REF=="G", toupper(complement(REF)), REF)) %>% 
+  mutate(new_ALT = ifelse(REF=="T" | REF=="G", toupper(complement(ALT)), ALT)) %>% 
+  unite(REF.ALT, c("new_REF", "new_ALT"), sep=".") 
+P1P3asparents_P2askid$X.CHROM <- as.factor(P1P3asparents_P2askid$X.CHROM)
+
+P1P4asparents_P2askid <- masked_P1P4asparents_P2askid %>% 
+  mutate(INFO_hiConfDeNovo=as.character(INFO_hiConfDeNovo)) %>%
+  mutate(INFO_loConfDeNovo=as.character(INFO_loConfDeNovo)) %>%
+  mutate(Sample_ID = case_when(
+    endsWith(INFO_hiConfDeNovo, "1079258") ~ "P2",
+    endsWith(INFO_loConfDeNovo, "1079258") ~ "P2")) %>% 
+  rename(P1_GT=X1079254_GT, P1_DP=X1079254_DP, P1_GQ=X1079254_GQ, P1_AD=X1079254_AD,
+         P2_GT=X1079258_GT, P2_DP=X1079258_DP, P2_GQ=X1079258_GQ, P2_AD=X1079258_AD,
+         P4_GT=X1079266_GT, P4_DP=X1079266_DP, P4_GQ=X1079266_GQ, P4_AD=X1079266_AD) %>%
+  filter(INFO_QD > 2.0) %>% # GATK site specific hard filter 
+  filter(INFO_FS < 60.0) %>% # GATK site specific hard filter 
+  filter(INFO_MQRankSum > -12.5) %>% # GATK site specific hard filter 
+  filter(INFO_ReadPosRankSum > -8.0) %>% # GATK site specific hard filter 
+  filter(INFO_SOR < 3.0) %>% # GATK site specific hard filter 
+  filter(P1_DP > 12 & 
+         P4_DP > 12 & 
+         P1_DP < 120 & 
+         P4_DP < 120) %>% # filter parents on DP 
+  filter(P1_GQ >=20 & P4_GQ >=20) %>%  # filter parents on GQ 
+  filter(P2_DP > 12 & 
+         P2_DP < 120) %>% #min/max DP range for kid 
+  filter(P2_GQ >= 20) %>% #min GQ for kid 
+  mutate(P1_GT=gsub("\\|", "/", P1_GT)) %>% # change | to / for GT column
+  mutate(P2_GT=gsub("\\|", "/", P2_GT)) %>% # change | to / for GT column
+  mutate(P4_GT=gsub("\\|", "/", P4_GT)) %>% # change | to / for GT column
+  separate(P1_AD, c('P1_AD_1', 'P1_AD_2')) %>% # split AD column into 2
+  separate(P2_AD, c('P2_AD_1', 'P2_AD_2')) %>% # split AD column into 2
+  separate(P4_AD, c('P4_AD_1', 'P4_AD_2')) %>% # split AD column into 2
+  filter(!(P1_GT == "0/0" & P1_AD_2 > 0)) %>%  
+  filter(!(P4_GT == "0/0" & P4_AD_2 > 0)) %>% 
+  filter(!(P1_GT == "1/1" & P1_AD_1 > 0)) %>%  
+  filter(!(P4_GT == "1/1" & P4_AD_1 > 0)) %>% 
+  filter(!X.CHROM=="chrX") %>% 
+  mutate(AD_frac=(as.numeric(P2_AD_2)/(as.numeric(P2_AD_1)+as.numeric(P2_AD_2)))) %>% 
+  #filter(AD_frac > 0.3 & AD_frac < 0.7 & Sample_ID=="P2") %>% 
+  mutate(mut_ID = paste0("mutation", row_number(), sep="")) %>% 
+  mutate(new_REF = ifelse(REF=="T" | REF=="G", toupper(complement(REF)), REF)) %>% 
+  mutate(new_ALT = ifelse(REF=="T" | REF=="G", toupper(complement(ALT)), ALT)) %>% 
+  unite(REF.ALT, c("new_REF", "new_ALT"), sep=".") 
+P1P4asparents_P2askid$X.CHROM <- as.factor(P1P4asparents_P2askid$X.CHROM)
+
+P3P4asparents_P2askid <- masked_P3P4asparents_P2askid %>% 
+  mutate(INFO_hiConfDeNovo=as.character(INFO_hiConfDeNovo)) %>%
+  mutate(INFO_loConfDeNovo=as.character(INFO_loConfDeNovo)) %>%
+  mutate(Sample_ID = case_when(
+    endsWith(INFO_hiConfDeNovo, "1079258") ~ "P2",
+    endsWith(INFO_loConfDeNovo, "1079258") ~ "P2")) %>% 
+  rename(P2_GT=X1079258_GT, P2_DP=X1079258_DP, P2_GQ=X1079258_GQ, P2_AD=X1079258_AD,
+         P3_GT=X1079262_GT, P3_DP=X1079262_DP, P3_GQ=X1079262_GQ, P3_AD=X1079262_AD,
+         P4_GT=X1079266_GT, P4_DP=X1079266_DP, P4_GQ=X1079266_GQ, P4_AD=X1079266_AD) %>%
+  filter(INFO_QD > 2.0) %>% # GATK site specific hard filter 
+  filter(INFO_FS < 60.0) %>% # GATK site specific hard filter 
+  filter(INFO_MQRankSum > -12.5) %>% # GATK site specific hard filter 
+  filter(INFO_ReadPosRankSum > -8.0) %>% # GATK site specific hard filter 
+  filter(INFO_SOR < 3.0) %>% # GATK site specific hard filter 
+  filter(P3_DP > 12 & 
+         P4_DP > 12 & 
+         P3_DP < 120 & 
+         P4_DP < 120) %>% # filter parents on DP 
+  filter(P3_GQ >=20 & P4_GQ >=20) %>%  # filter parents on GQ 
+  filter(P2_DP > 12 & 
+         P2_DP < 120) %>% #min/max DP range for kid 
+  filter(P2_GQ >= 20) %>% #min GQ for kid 
+  mutate(P2_GT=gsub("\\|", "/", P2_GT)) %>% # change | to / for GT column
+  mutate(P3_GT=gsub("\\|", "/", P3_GT)) %>% # change | to / for GT column
+  mutate(P4_GT=gsub("\\|", "/", P4_GT)) %>% # change | to / for GT column
+  separate(P2_AD, c('P2_AD_1', 'P2_AD_2')) %>% # split AD column into 2
+  separate(P3_AD, c('P3_AD_1', 'P3_AD_2')) %>% # split AD column into 2
+  separate(P4_AD, c('P4_AD_1', 'P4_AD_2')) %>% # split AD column into 2
+  filter(!(P3_GT == "0/0" & P3_AD_2 > 0)) %>%  
+  filter(!(P4_GT == "0/0" & P4_AD_2 > 0)) %>% 
+  filter(!(P3_GT == "1/1" & P3_AD_1 > 0)) %>%  
+  filter(!(P4_GT == "1/1" & P4_AD_1 > 0)) %>% 
+  filter(!X.CHROM=="chrX") %>% 
+  mutate(AD_frac=(as.numeric(P2_AD_2)/(as.numeric(P2_AD_1)+as.numeric(P2_AD_2)))) %>% 
+  #filter(AD_frac > 0.3 & AD_frac < 0.7 & Sample_ID=="P2") %>% 
+  mutate(mut_ID = paste0("mutation", row_number(), sep="")) %>% 
+  mutate(new_REF = ifelse(REF=="T" | REF=="G", toupper(complement(REF)), REF)) %>% 
+  mutate(new_ALT = ifelse(REF=="T" | REF=="G", toupper(complement(ALT)), ALT)) %>% 
+  unite(REF.ALT, c("new_REF", "new_ALT"), sep=".") 
+P3P4asparents_P2askid$X.CHROM <- as.factor(P3P4asparents_P2askid$X.CHROM)
+
+## P3
+P1P2asparents_P3askid <- masked_P1P2asparents_P3askid %>% 
+  mutate(INFO_hiConfDeNovo=as.character(INFO_hiConfDeNovo)) %>%
+  mutate(INFO_loConfDeNovo=as.character(INFO_loConfDeNovo)) %>%
+  mutate(Sample_ID = case_when(
+    endsWith(INFO_hiConfDeNovo, "1079262") ~ "P3",
+    endsWith(INFO_loConfDeNovo, "1079262") ~ "P3")) %>% 
+  rename(P1_GT=X1079254_GT, P1_DP=X1079254_DP, P1_GQ=X1079254_GQ, P1_AD=X1079254_AD,
+         P2_GT=X1079258_GT, P2_DP=X1079258_DP, P2_GQ=X1079258_GQ, P2_AD=X1079258_AD,
+         P3_GT=X1079262_GT, P3_DP=X1079262_DP, P3_GQ=X1079262_GQ, P3_AD=X1079262_AD) %>%
+  filter(INFO_QD > 2.0) %>% # GATK site specific hard filter 
+  filter(INFO_FS < 60.0) %>% # GATK site specific hard filter 
+  filter(INFO_MQRankSum > -12.5) %>% # GATK site specific hard filter 
+  filter(INFO_ReadPosRankSum > -8.0) %>% # GATK site specific hard filter 
+  filter(INFO_SOR < 3.0) %>% # GATK site specific hard filter 
+  filter(P1_DP > 12 & 
+         P2_DP > 12 & 
+         P1_DP < 120 & 
+         P2_DP < 120) %>% # filter parents on DP 
+  filter(P1_GQ >=20 & P2_GQ >=20) %>%  # filter parents on GQ 
+  filter(P3_DP > 12 & 
+         P3_DP < 120) %>% #min/max DP range for kid 
+  filter(P3_GQ >= 20) %>% #min GQ for kid 
+  mutate(P1_GT=gsub("\\|", "/", P1_GT)) %>% # change | to / for GT column
+  mutate(P2_GT=gsub("\\|", "/", P2_GT)) %>% # change | to / for GT column
+  mutate(P3_GT=gsub("\\|", "/", P3_GT)) %>% # change | to / for GT column
+  separate(P1_AD, c('P1_AD_1', 'P1_AD_2')) %>% # split AD column into 2
+  separate(P2_AD, c('P2_AD_1', 'P2_AD_2')) %>% # split AD column into 2
+  separate(P3_AD, c('P3_AD_1', 'P3_AD_2')) %>% # split AD column into 2
+  filter(!(P1_GT == "0/0" & P1_AD_2 > 0)) %>%   
+  filter(!(P2_GT == "0/0" & P2_AD_2 > 0)) %>% 
+  filter(!(P1_GT == "1/1" & P1_AD_1 > 0)) %>%   
+  filter(!(P2_GT == "1/1" & P2_AD_1 > 0)) %>% 
+  filter(!X.CHROM=="chrX") %>% 
+  mutate(AD_frac=(as.numeric(P3_AD_2)/(as.numeric(P3_AD_1)+as.numeric(P3_AD_2)))) %>% 
+  #filter(AD_frac > 0.3 & AD_frac < 0.7 & Sample_ID=="P3") %>% 
+  mutate(mut_ID = paste0("mutation", row_number(), sep="")) %>% 
+  mutate(new_REF = ifelse(REF=="T" | REF=="G", toupper(complement(REF)), REF)) %>% 
+  mutate(new_ALT = ifelse(REF=="T" | REF=="G", toupper(complement(ALT)), ALT)) %>% 
+  unite(REF.ALT, c("new_REF", "new_ALT"), sep=".") 
+P1P2asparents_P3askid$X.CHROM <- as.factor(P1P2asparents_P3askid$X.CHROM)
+
+P1P4asparents_P3askid <- masked_P1P4asparents_P3askid %>% 
+  mutate(INFO_hiConfDeNovo=as.character(INFO_hiConfDeNovo)) %>%
+  mutate(INFO_loConfDeNovo=as.character(INFO_loConfDeNovo)) %>%
+  mutate(Sample_ID = case_when(
+    endsWith(INFO_hiConfDeNovo, "1079262") ~ "P3",
+    endsWith(INFO_loConfDeNovo, "1079262") ~ "P3")) %>% 
+  rename(P1_GT=X1079254_GT, P1_DP=X1079254_DP, P1_GQ=X1079254_GQ, P1_AD=X1079254_AD,
+         P3_GT=X1079262_GT, P3_DP=X1079262_DP, P3_GQ=X1079262_GQ, P3_AD=X1079262_AD,
+         P4_GT=X1079266_GT, P4_DP=X1079266_DP, P4_GQ=X1079266_GQ, P4_AD=X1079266_AD) %>%
+  filter(INFO_QD > 2.0) %>% # GATK site specific hard filter 
+  filter(INFO_FS < 60.0) %>% # GATK site specific hard filter 
+  filter(INFO_MQRankSum > -12.5) %>% # GATK site specific hard filter 
+  filter(INFO_ReadPosRankSum > -8.0) %>% # GATK site specific hard filter 
+  filter(INFO_SOR < 3.0) %>% # GATK site specific hard filter 
+  filter(P1_DP > 12 & 
+         P4_DP > 12 & 
+         P1_DP < 120 & 
+         P4_DP < 120) %>% # filter parents on DP 
+  filter(P1_GQ >=20 & P4_GQ >=20) %>%  # filter parents on GQ 
+  filter(P3_DP > 12 & 
+         P3_DP < 120) %>% #min/max DP range for kid 
+  filter(P3_GQ >= 20) %>% #min GQ for kid 
+  mutate(P1_GT=gsub("\\|", "/", P1_GT)) %>% # change | to / for GT column
+  mutate(P3_GT=gsub("\\|", "/", P3_GT)) %>% # change | to / for GT column
+  mutate(P4_GT=gsub("\\|", "/", P4_GT)) %>% # change | to / for GT column
+  separate(P1_AD, c('P1_AD_1', 'P1_AD_2')) %>% # split AD column into 2
+  separate(P3_AD, c('P3_AD_1', 'P3_AD_2')) %>% # split AD column into 2
+  separate(P4_AD, c('P4_AD_1', 'P4_AD_2')) %>% # split AD column into 2
+  filter(!(P1_GT == "0/0" & P1_AD_2 > 0)) %>%  
+  filter(!(P4_GT == "0/0" & P4_AD_2 > 0)) %>% 
+  filter(!(P1_GT == "1/1" & P1_AD_1 > 0)) %>%  
+  filter(!(P4_GT == "1/1" & P4_AD_1 > 0)) %>% 
+  filter(!X.CHROM=="chrX") %>% 
+  mutate(AD_frac=(as.numeric(P3_AD_2)/(as.numeric(P3_AD_1)+as.numeric(P3_AD_2)))) %>% 
+  #filter(AD_frac > 0.3 & AD_frac < 0.7 & Sample_ID=="P3") %>% 
+  mutate(mut_ID = paste0("mutation", row_number(), sep="")) %>% 
+  mutate(new_REF = ifelse(REF=="T" | REF=="G", toupper(complement(REF)), REF)) %>% 
+  mutate(new_ALT = ifelse(REF=="T" | REF=="G", toupper(complement(ALT)), ALT)) %>% 
+  unite(REF.ALT, c("new_REF", "new_ALT"), sep=".") 
+P1P4asparents_P3askid$X.CHROM <- as.factor(P1P4asparents_P3askid$X.CHROM)
+
+P2P4asparents_P3askid <- masked_P2P4asparents_P3askid %>% 
+  mutate(INFO_hiConfDeNovo=as.character(INFO_hiConfDeNovo)) %>%
+  mutate(INFO_loConfDeNovo=as.character(INFO_loConfDeNovo)) %>%
+  mutate(Sample_ID = case_when(
+    endsWith(INFO_hiConfDeNovo, "1079262") ~ "P3",
+    endsWith(INFO_loConfDeNovo, "1079262") ~ "P3")) %>% 
+  rename(P2_GT=X1079258_GT, P2_DP=X1079258_DP, P2_GQ=X1079258_GQ, P2_AD=X1079258_AD,
+         P3_GT=X1079262_GT, P3_DP=X1079262_DP, P3_GQ=X1079262_GQ, P3_AD=X1079262_AD,
+         P4_GT=X1079266_GT, P4_DP=X1079266_DP, P4_GQ=X1079266_GQ, P4_AD=X1079266_AD) %>%
+  filter(INFO_QD > 2.0) %>% # GATK site specific hard filter 
+  filter(INFO_FS < 60.0) %>% # GATK site specific hard filter 
+  filter(INFO_MQRankSum > -12.5) %>% # GATK site specific hard filter 
+  filter(INFO_ReadPosRankSum > -8.0) %>% # GATK site specific hard filter 
+  filter(INFO_SOR < 3.0) %>% # GATK site specific hard filter
+  filter(P2_DP > 12 & 
+         P4_DP > 12 & 
+         P2_DP < 120 & 
+         P4_DP < 120) %>% # filter parents on DP 
+  filter(P2_GQ >=20 & P4_GQ >=20) %>%  # filter parents on GQ 
+  filter(P3_DP > 12 & 
+         P3_DP < 120) %>% #min/max DP range for kid 
+  filter(P3_GQ >= 20) %>% #min GQ for kid 
+  mutate(P2_GT=gsub("\\|", "/", P2_GT)) %>% # change | to / for GT column
+  mutate(P3_GT=gsub("\\|", "/", P3_GT)) %>% # change | to / for GT column
+  mutate(P4_GT=gsub("\\|", "/", P4_GT)) %>% # change | to / for GT column
+  separate(P2_AD, c('P2_AD_1', 'P2_AD_2')) %>% # split AD column into 2
+  separate(P3_AD, c('P3_AD_1', 'P3_AD_2')) %>% # split AD column into 2
+  separate(P4_AD, c('P4_AD_1', 'P4_AD_2')) %>% # split AD column into 2
+  filter(!(P2_GT == "0/0" & P2_AD_2 > 0)) %>%   
+  filter(!(P4_GT == "0/0" & P4_AD_2 > 0)) %>% 
+  filter(!(P2_GT == "1/1" & P2_AD_1 > 0)) %>% 
+  filter(!(P4_GT == "1/1" & P4_AD_1 > 0)) %>% 
+  filter(!X.CHROM=="chrX") %>% 
+  mutate(AD_frac=(as.numeric(P3_AD_2)/(as.numeric(P3_AD_1)+as.numeric(P3_AD_2)))) %>% 
+  #filter(AD_frac > 0.3 & AD_frac < 0.7 & Sample_ID=="P3") %>% 
+  mutate(mut_ID = paste0("mutation", row_number(), sep="")) %>% 
+  mutate(new_REF = ifelse(REF=="T" | REF=="G", toupper(complement(REF)), REF)) %>% 
+  mutate(new_ALT = ifelse(REF=="T" | REF=="G", toupper(complement(ALT)), ALT)) %>% 
+  unite(REF.ALT, c("new_REF", "new_ALT"), sep=".") 
+#### for whatever reason reorder is switching levels 9 and 10 here, so manually setting factor levels for this plot
+P2P4asparents_P3askid$X.CHROM <- factor(P2P4asparents_P3askid$X.CHROM, levels=c(paste0("chr", 1:22),  "chrX"))
+
+## P4
+P1P2asparents_P4askid <- masked_P1P2asparents_P4askid %>% 
+  mutate(INFO_hiConfDeNovo=as.character(INFO_hiConfDeNovo)) %>%
+  mutate(INFO_loConfDeNovo=as.character(INFO_loConfDeNovo)) %>%
+  mutate(Sample_ID = case_when(
+    endsWith(INFO_hiConfDeNovo, "1079266") ~ "P4",
+    endsWith(INFO_loConfDeNovo, "1079266") ~ "P4")) %>% 
+  rename(P1_GT=X1079254_GT, P1_DP=X1079254_DP, P1_GQ=X1079254_GQ, P1_AD=X1079254_AD,
+         P2_GT=X1079258_GT, P2_DP=X1079258_DP, P2_GQ=X1079258_GQ, P2_AD=X1079258_AD,
+         P4_GT=X1079266_GT, P4_DP=X1079266_DP, P4_GQ=X1079266_GQ, P4_AD=X1079266_AD) %>%
+  filter(INFO_QD > 2.0) %>% # GATK site specific hard filter 
+  filter(INFO_FS < 60.0) %>% # GATK site specific hard filter
+  filter(INFO_MQRankSum > -12.5) %>% # GATK site specific hard filter
+  filter(INFO_ReadPosRankSum > -8.0) %>% # GATK site specific hard filter 
+  filter(INFO_SOR < 3.0) %>% # GATK site specific hard filter 
+  filter(P1_DP > 12 & 
+         P2_DP > 12 & 
+         P1_DP < 120 & 
+         P2_DP < 120) %>% # filter parents on DP 
+  filter(P1_GQ >=20 & P2_GQ >=20) %>%  # filter parents on GQ 
+  filter(P4_DP > 12 & 
+         P4_DP < 120) %>% #min/max DP range for kid 
+  filter(P4_GQ >= 20) %>% #min GQ for kid 
+  mutate(P1_GT=gsub("\\|", "/", P1_GT)) %>% # change | to / for GT column
+  mutate(P2_GT=gsub("\\|", "/", P2_GT)) %>% # change | to / for GT column
+  mutate(P4_GT=gsub("\\|", "/", P4_GT)) %>% # change | to / for GT column
+  separate(P1_AD, c('P1_AD_1', 'P1_AD_2')) %>% # split AD column into 2
+  separate(P2_AD, c('P2_AD_1', 'P2_AD_2')) %>% # split AD column into 2
+  separate(P4_AD, c('P4_AD_1', 'P4_AD_2')) %>% # split AD column into 2
+  filter(!(P1_GT == "0/0" & P1_AD_2 > 0)) %>%  #  
+  filter(!(P2_GT == "0/0" & P2_AD_2 > 0)) %>% #  
+  filter(!(P1_GT == "1/1" & P1_AD_1 > 0)) %>%  #  
+  filter(!(P2_GT == "1/1" & P2_AD_1 > 0)) %>% #  
+  filter(!X.CHROM=="chrX") %>% 
+  mutate(AD_frac=(as.numeric(P4_AD_2)/(as.numeric(P4_AD_1)+as.numeric(P4_AD_2)))) %>% 
+  #filter(AD_frac > 0.3 & AD_frac < 0.7 & Sample_ID=="P4") %>% #  (removes 6)
+  mutate(mut_ID = paste0("mutation", row_number(), sep="")) %>% 
+  mutate(new_REF = ifelse(REF=="T" | REF=="G", toupper(complement(REF)), REF)) %>% 
+  mutate(new_ALT = ifelse(REF=="T" | REF=="G", toupper(complement(ALT)), ALT)) %>% 
+  unite(REF.ALT, c("new_REF", "new_ALT"), sep=".") 
+P1P2asparents_P4askid$X.CHROM <- as.factor(P1P2asparents_P4askid$X.CHROM)
+
+P1P3asparents_P4askid <- masked_P1P3asparents_P4askid %>% 
+  mutate(INFO_hiConfDeNovo=as.character(INFO_hiConfDeNovo)) %>%
+  mutate(INFO_loConfDeNovo=as.character(INFO_loConfDeNovo)) %>%
+  mutate(Sample_ID = case_when(
+    endsWith(INFO_hiConfDeNovo, "1079266") ~ "P4",
+    endsWith(INFO_loConfDeNovo, "1079266") ~ "P4")) %>% 
+  rename(P1_GT=X1079254_GT, P1_DP=X1079254_DP, P1_GQ=X1079254_GQ, P1_AD=X1079254_AD,
+         P3_GT=X1079262_GT, P3_DP=X1079262_DP, P3_GQ=X1079262_GQ, P3_AD=X1079262_AD,
+         P4_GT=X1079266_GT, P4_DP=X1079266_DP, P4_GQ=X1079266_GQ, P4_AD=X1079266_AD) %>%
+  filter(INFO_QD > 2.0) %>% # GATK site specific hard filter 
+  filter(INFO_FS < 60.0) %>% # GATK site specific hard filter
+  filter(INFO_MQRankSum > -12.5) %>% # GATK site specific hard filter 
+  filter(INFO_ReadPosRankSum > -8.0) %>% # GATK site specific hard filter 
+  filter(INFO_SOR < 3.0) %>% # GATK site specific hard filter 
+  filter(P1_DP > 12 & 
+         P3_DP > 12 & 
+         P1_DP < 120 & 
+         P3_DP < 120) %>% # filter parents on DP 
+  filter(P1_GQ >=20 & P3_GQ >=20) %>%  # filter parents on GQ 
+  filter(P4_DP > 12 & 
+         P4_DP < 120) %>% #min/max DP range for kid 
+  filter(P4_GQ >= 20) %>% #min GQ for kid 
+  mutate(P1_GT=gsub("\\|", "/", P1_GT)) %>% # change | to / for GT column
+  mutate(P3_GT=gsub("\\|", "/", P3_GT)) %>% # change | to / for GT column
+  mutate(P4_GT=gsub("\\|", "/", P4_GT)) %>% # change | to / for GT column
+  separate(P1_AD, c('P1_AD_1', 'P1_AD_2')) %>% # split AD column into 2
+  separate(P3_AD, c('P3_AD_1', 'P3_AD_2')) %>% # split AD column into 2
+  separate(P4_AD, c('P4_AD_1', 'P4_AD_2')) %>% # split AD column into 2
+  filter(!(P1_GT == "0/0" & P1_AD_2 > 0)) %>%  
+  filter(!(P3_GT == "0/0" & P3_AD_2 > 0)) %>% 
+  filter(!(P1_GT == "1/1" & P1_AD_1 > 0)) %>%  
+  filter(!(P3_GT == "1/1" & P3_AD_1 > 0)) %>% 
+  filter(!X.CHROM=="chrX") %>% 
+  mutate(AD_frac=(as.numeric(P4_AD_2)/(as.numeric(P4_AD_1)+as.numeric(P4_AD_2)))) %>% 
+  #filter(AD_frac > 0.3 & AD_frac < 0.7 & Sample_ID=="P4") %>% 
+  mutate(mut_ID = paste0("mutation", row_number(), sep="")) %>% 
+  mutate(new_REF = ifelse(REF=="T" | REF=="G", toupper(complement(REF)), REF)) %>% 
+  mutate(new_ALT = ifelse(REF=="T" | REF=="G", toupper(complement(ALT)), ALT)) %>% 
+  unite(REF.ALT, c("new_REF", "new_ALT"), sep=".") 
+P1P3asparents_P4askid$X.CHROM <- as.factor(P1P3asparents_P4askid$X.CHROM)
+
+P2P3asparents_P4askid <- masked_P2P3asparents_P4askid %>% 
+  mutate(INFO_hiConfDeNovo=as.character(INFO_hiConfDeNovo)) %>%
+  mutate(INFO_loConfDeNovo=as.character(INFO_loConfDeNovo)) %>%
+  mutate(Sample_ID = case_when(
+    endsWith(INFO_hiConfDeNovo, "1079266") ~ "P4",
+    endsWith(INFO_loConfDeNovo, "1079266") ~ "P4")) %>% 
+  rename(P2_GT=X1079258_GT, P2_DP=X1079258_DP, P2_GQ=X1079258_GQ, P2_AD=X1079258_AD,
+         P3_GT=X1079262_GT, P3_DP=X1079262_DP, P3_GQ=X1079262_GQ, P3_AD=X1079262_AD,
+         P4_GT=X1079266_GT, P4_DP=X1079266_DP, P4_GQ=X1079266_GQ, P4_AD=X1079266_AD) %>%
+  filter(INFO_QD > 2.0) %>% # GATK site specific hard filter 
+  filter(INFO_FS < 60.0) %>% # GATK site specific hard filter 
+  filter(INFO_MQRankSum > -12.5) %>% # GATK site specific hard filter
+  filter(INFO_ReadPosRankSum > -8.0) %>% # GATK site specific hard filter 
+  filter(INFO_SOR < 3.0) %>% # GATK site specific hard filter
+  filter(P2_DP > 12 & 
+         P3_DP > 12 & 
+         P2_DP < 120 & 
+         P3_DP < 120) %>% # filter parents on DP 
+  filter(P2_GQ >=20 & P3_GQ >=20) %>%  # filter parents on GQ 
+  filter(P4_DP > 12 & 
+         P4_DP < 120) %>% #min/max DP range for kid 
+  filter(P4_GQ >= 20) %>% #min GQ for kid 
+  mutate(P2_GT=gsub("\\|", "/", P2_GT)) %>% # change | to / for GT column
+  mutate(P3_GT=gsub("\\|", "/", P3_GT)) %>% # change | to / for GT column
+  mutate(P4_GT=gsub("\\|", "/", P4_GT)) %>% # change | to / for GT column
+  separate(P2_AD, c('P2_AD_1', 'P2_AD_2')) %>% # split AD column into 2
+  separate(P3_AD, c('P3_AD_1', 'P3_AD_2')) %>% # split AD column into 2
+  separate(P4_AD, c('P4_AD_1', 'P4_AD_2')) %>% # split AD column into 2
+  filter(!(P2_GT == "0/0" & P2_AD_2 > 0)) %>%  
+  filter(!(P3_GT == "0/0" & P3_AD_2 > 0)) %>% 
+  filter(!(P2_GT == "1/1" & P2_AD_1 > 0)) %>% 
+  filter(!(P3_GT == "1/1" & P3_AD_1 > 0)) %>%  
+  filter(!X.CHROM=="chrX") %>% 
+  mutate(AD_frac=(as.numeric(P4_AD_2)/(as.numeric(P4_AD_2)+as.numeric(P4_AD_1)))) %>% 
+  #filter(AD_frac > 0.3 & AD_frac < 0.7 & Sample_ID=="P4") %>%
+  mutate(mut_ID = paste0("mutation", row_number(), sep="")) %>% 
+  mutate(new_REF = ifelse(REF=="T" | REF=="G", toupper(complement(REF)), REF)) %>% 
+  mutate(new_ALT = ifelse(REF=="T" | REF=="G", toupper(complement(ALT)), ALT)) %>% 
+  unite(REF.ALT, c("new_REF", "new_ALT"), sep=".") 
+P2P3asparents_P4askid$X.CHROM <- as.factor(P2P3asparents_P4askid$X.CHROM)
+
+# Clean up original files to remove clutter
+rm(masked_C11aschild, masked_C12aschild, masked_C21asfather_C22askid, masked_C21asfather_C23askid, masked_C22asfather_C21askid, masked_C22asfather_C23askid, masked_C23asfather_C21askid, masked_C23asfather_C22askid, masked_C31aschild, masked_C32aschild, masked_C41asfather_C42askid, masked_C42asfather_C41askid, masked_P1P2asparents_P3askid, masked_P1P2asparents_P4askid, masked_P1P3asparents_P2askid, masked_P1P3asparents_P4askid, masked_P1P4asparents_P2askid, masked_P1P4asparents_P3askid, masked_P2P3asparents_P1askid, masked_P2P3asparents_P4askid, masked_P2P4asparents_P1askid, masked_P2P4asparents_P3askid, masked_P3P4asparents_P1askid, masked_P3P4asparents_P2askid, trios_1, trios_3)
+
+```
+
+```{r}
+# Step 1: Visually map all called DNMs of all trio combinations in the pedigree to see which regions should be removed after filtering out clusters
+
+mutation_colors <- c("C.A" = "#5BBAE9",
+                      "C.G" = "#010101",
+                      "C.T" = "#D13D31",
+                      "A.T" = "#CAC9C9",
+                      "A.G" = "#AACC70",
+                      "A.C" = "#E6C9C7")
+
+### family 1 children mutation counts and fractions
+
+level_order <- c("C.A", "C.G", "C.T", "A.T", "A.G", "A.C")
+
+C11aschild_mutation_counts <- C11aschild %>%
+  group_by(REF.ALT) %>%
+  summarize(count = n())
+C11aschild_mutation_counts$REF.ALT <- factor(C11aschild_mutation_counts$REF.ALT, levels = level_order)
+C11aschild_total_mutations <- sum(C11aschild_mutation_counts$count)
+C11aschild_mutation_fractions <- C11aschild_mutation_counts %>%
+  mutate(fraction = count / C11aschild_total_mutations)
+
+C12aschild_mutation_counts <- C12aschild %>%
+  group_by(REF.ALT) %>%
+  summarize(count = n())
+C12aschild_mutation_counts$REF.ALT <- factor(C12aschild_mutation_counts$REF.ALT, levels = level_order)
+C12aschild_total_mutations <- sum(C12aschild_mutation_counts$count)
+C12aschild_mutation_fractions <- C12aschild_mutation_counts %>%
+  mutate(fraction = count / C12aschild_total_mutations)
+
+### family 3 children mutation counts and fractions
+C31aschild_mutation_counts <- C31aschild %>%
+  group_by(REF.ALT) %>%
+  summarize(count = n())
+C31aschild_mutation_counts$REF.ALT <- factor(C31aschild_mutation_counts$REF.ALT, levels = level_order)
+C31aschild_total_mutations <- sum(C31aschild_mutation_counts$count)
+C31aschild_mutation_fractions <- C31aschild_mutation_counts %>%
+  mutate(fraction = count / C31aschild_total_mutations)
+
+C32aschild_mutation_counts <- C32aschild %>%
+  group_by(REF.ALT) %>%
+  summarize(count = n())
+C32aschild_mutation_counts$REF.ALT <- factor(C32aschild_mutation_counts$REF.ALT, levels = level_order)
+C32aschild_total_mutations <- sum(C32aschild_mutation_counts$count)
+C32aschild_mutation_fractions <- C32aschild_mutation_counts %>%
+  mutate(fraction = count / C32aschild_total_mutations)
+
+```
+
+```{r}
+
+# Combine data sets and add column for set ID
+combined_data <- bind_rows(
+  mutate(C11aschild_mutation_counts, child = "C11"),
+  mutate(C12aschild_mutation_counts, child = "C12"),
+  mutate(C31aschild_mutation_counts, child = "C31"),
+  mutate(C32aschild_mutation_counts, child = "C32")
+)
+
+my_colors <- c("#E69F00", "#56B4E9", "#009E73", "grey")
+
+# count mutations without chromosome X (mutations are a bit more suspicious there)
+
+noX_C11aschild_mutation_counts <- C11aschild %>%
+  filter(!X.CHROM=="chrX") %>% 
+  group_by(REF.ALT) %>%
+  summarize(count = n())
+noX_C11aschild_mutation_counts$REF.ALT <- factor(noX_C11aschild_mutation_counts$REF.ALT, levels = level_order)
+
+noX_C12aschild_mutation_counts <- C12aschild %>%
+  filter(!X.CHROM=="chrX") %>% 
+  group_by(REF.ALT) %>%
+  summarize(count = n())
+noX_C12aschild_mutation_counts$REF.ALT <- factor(noX_C12aschild_mutation_counts$REF.ALT, levels = level_order)
+
+noX_C31aschild_mutation_counts <- C31aschild %>%
+  filter(!X.CHROM=="chrX") %>% 
+  group_by(REF.ALT) %>%
+  summarize(count = n())
+noX_C31aschild_mutation_counts$REF.ALT <- factor(noX_C31aschild_mutation_counts$REF.ALT, levels = level_order)
+
+noX_C32aschild_mutation_counts <- C32aschild %>%
+  filter(!X.CHROM=="chrX") %>% 
+  group_by(REF.ALT) %>%
+  summarize(count = n())
+noX_C32aschild_mutation_counts$REF.ALT <- factor(noX_C32aschild_mutation_counts$REF.ALT, levels = level_order)
+
+
+noX_combined_data <- bind_rows(
+  mutate(noX_C11aschild_mutation_counts, child = "C11"),
+  mutate(noX_C12aschild_mutation_counts, child = "C12"),
+  mutate(noX_C31aschild_mutation_counts, child = "C31"),
+  mutate(noX_C32aschild_mutation_counts, child = "C32")
+)
+
+# plot mutation counts (with and without ChrX)
+
+my_colors <- c("#E69F00", "#56B4E9", "#009E73", "grey")
+
+ggplot(combined_data, aes(x = REF.ALT, y = count, fill = child)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_fill_manual(values = my_colors) +
+  ylim(0,55)+
+  labs(x = "Mutation Type", y = "Count", title = "Mutation Types Counts (Including Chromosome X)")+
+  theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold"))
+
+ggplot(noX_combined_data, aes(x = REF.ALT, y = count, fill = child)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_fill_manual(values = my_colors) +
+  ylim(0,55)+
+  labs(x = "Mutation Type", y = "Count", title = "Mutation Types Counts (Excluding Chromosome X)")+
+  theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold"))
+
+combined_data <- combined_data %>% 
+  group_by(child) %>% 
+  mutate(total_count = sum(count))
+
+noX_combined_data <- noX_combined_data %>% 
+  group_by(child) %>% 
+  mutate(total_count = sum(count))
+
+ggplot(combined_data, aes(x = child, y = total_count, fill = child)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_fill_manual(values = my_colors) +
+  labs(x = "Individual", y = "Count", title = "Total Mutation Counts (Including Chromosome X)")+
+  ylim(0,130)+
+  theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold"))
+
+ggplot(noX_combined_data, aes(x = child, y = total_count, fill = child)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_fill_manual(values = my_colors) +
+  labs(x = "Individual", y = "Count", title = "Total Mutation Counts (Excluding Chromosome X)") +
+  ylim(0,130)+
+  theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold"))
+
+```
+
+
+```{r}
+# Save each data frame as a CSV file
+write.csv(C11aschild, file = "no_VAF_filtering_hard_filtered_csvs/C11askid.csv", row.names = FALSE)
+write.csv(C12aschild, file = "no_VAF_filtering_hard_filtered_csvs/C12askid.csv", row.names = FALSE)
+write.csv(C31aschild, file = "no_VAF_filtering_hard_filtered_csvs/C31askid.csv", row.names = FALSE)
+write.csv(C32aschild, file = "no_VAF_filtering_hard_filtered_csvs/C32askid.csv", row.names = FALSE)
+write.csv(C22asfather_C21askid, file = "no_VAF_filtering_hard_filtered_csvs/C22asfather_C21askid.csv", row.names = FALSE)
+write.csv(C23asfather_C21askid, file = "no_VAF_filtering_hard_filtered_csvs/C23asfather_C21askid.csv", row.names = FALSE)
+write.csv(C21asfather_C22askid, file = "no_VAF_filtering_hard_filtered_csvs/C21asfather_C22askid.csv", row.names = FALSE)
+write.csv(C23asfather_C22askid, file = "no_VAF_filtering_hard_filtered_csvs/C23asfather_C22askid.csv", row.names = FALSE)
+write.csv(C21asfather_C23askid, file = "no_VAF_filtering_hard_filtered_csvs/C21asfather_C23askid.csv", row.names = FALSE)
+write.csv(C22asfather_C23askid, file = "no_VAF_filtering_hard_filtered_csvs/C22asfather_C23askid.csv", row.names = FALSE)
+write.csv(C42asfather_C41askid, file = "no_VAF_filtering_hard_filtered_csvs/C42asfather_C41askid.csv", row.names = FALSE)
+write.csv(C41asfather_C42askid, file = "no_VAF_filtering_hard_filtered_csvs/C41asfather_C42askid.csv", row.names = FALSE)
+write.csv(P2P3asparents_P1askid, file = "no_VAF_filtering_hard_filtered_csvs/P2P3asparents_P1askid.csv", row.names = FALSE)
+write.csv(P2P4asparents_P1askid, file = "no_VAF_filtering_hard_filtered_csvs/P2P4asparents_P1askid.csv", row.names = FALSE)
+write.csv(P3P4asparents_P1askid, file = "no_VAF_filtering_hard_filtered_csvs/P3P4asparents_P1askid.csv", row.names = FALSE)
+write.csv(P1P3asparents_P2askid, file = "no_VAF_filtering_hard_filtered_csvs/P1P3asparents_P2askid.csv", row.names = FALSE)
+write.csv(P1P4asparents_P2askid, file = "no_VAF_filtering_hard_filtered_csvs/P1P4asparents_P2askid.csv", row.names = FALSE)
+write.csv(P3P4asparents_P2askid, file = "no_VAF_filtering_hard_filtered_csvs/P3P4asparents_P2askid.csv", row.names = FALSE)
+write.csv(P1P2asparents_P3askid, file = "no_VAF_filtering_hard_filtered_csvs/P1P2asparents_P3askid.csv", row.names = FALSE)
+write.csv(P1P4asparents_P3askid, file = "no_VAF_filtering_hard_filtered_csvs/P1P4asparents_P3askid.csv", row.names = FALSE)
+write.csv(P2P4asparents_P3askid, file = "no_VAF_filtering_hard_filtered_csvs/P2P4asparents_P3askid.csv", row.names = FALSE)
+write.csv(P1P2asparents_P4askid, file = "no_VAF_filtering_hard_filtered_csvs/P1P2asparents_P4askid.csv", row.names = FALSE)
+write.csv(P1P3asparents_P4askid, file = "no_VAF_filtering_hard_filtered_csvs/P1P3asparents_P4askid.csv", row.names = FALSE)
+write.csv(P2P3asparents_P4askid, file = "no_VAF_filtering_hard_filtered_csvs/P2P3asparents_P4askid.csv", row.names = FALSE)
+```
+
+
+
+
+
+
+
+
+
