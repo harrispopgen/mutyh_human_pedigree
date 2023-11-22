@@ -1,6 +1,4 @@
 #!/bin/bash
-#$ -o /net/harris/vol1/home/clyoung1/myh_pedigree/230705_fullpipeline/PossibleDeNovo_files/redo_hap_IBD_intersected_filtered_vcfs/errors
-#$ -e /net/harris/vol1/home/clyoung1/myh_pedigree/230705_fullpipeline/PossibleDeNovo_files/redo_hap_IBD_intersected_filtered_vcfs/errors
 
 module load modules modules-init
 module load htslib/1.9-20 bcftools/1.12 bedtools/2.29.2
