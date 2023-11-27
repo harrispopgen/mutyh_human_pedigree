@@ -26,6 +26,8 @@ The script generates VCF files for each PED file analyzed, with two sets of outp
 
 Each output VCF is named based on the corresponding PED file and is stored in the designated output directory.
 
+<hr>
+
 ### Step 2:
 `02_ParallelCoverageComputation_15Individuals23Chromosomes.sh`
 
@@ -50,6 +52,8 @@ This script computes coverage scores for 15 individuals across 23 chromosomes, p
 - Coverage txt files for each individual and chromosome combination, named in the format: `individualID_chromosome.txt` (e.g., `C11.1079256_chr1.txt`).
 - Each file contains the chromosome, start and end positions of each chunk, and the calculated coverage scores across each 10K bp chunk.
 
+<hr>
+
 ### Step 3:
 `03_ChangeEmptyRowstoZeros.sh`
 
@@ -66,6 +70,8 @@ This script is designed to process output files from the coverage calculation st
 
 #### Outputs:
 - The script modifies the files in-place; therefore, the output is the updated txt files in the same directory with empty values replaced by zeros. These can be named appropriately when modifying this code.
+
+<hr>
 
 ### Step 4:
 `04_MergeDepthFiles_and_CalculateAvgDepths.py`
@@ -97,6 +103,8 @@ This script consolidates and averages depth information across multiple individu
 - **Sampling Percentage**: Set to a small percentage (e.g., 0.001) for validation purposes.
 - This process involves randomly sampling a set number of sites and comparing the averaged depth values in the output file with those in the original individual depth files to ensure the data from the merged files matches the original input. This step confirms the validity of the merging and averaging processes.
 
+<hr>
+
 ### Step 5:
 `05_Calculate_Depth_Summary_Statistics.py`
 
@@ -122,6 +130,8 @@ This script calculates the average (mean) depth across 10KB chunks per chromosom
 - BED files with and without the average depth scores.
 
 The script processes depth data to create output BED files of the average depth scores across all chromosomal 10kb chunks and individuals. The optional summary statistics offer additional depth insights.
+
+<hr>
 
 ### Step 6:
 `06_Grab_AccessibleSites_fromVCFs_andBEDs.sh`
@@ -156,14 +166,23 @@ This script filters original VCF files for regions that are mappable and have an
 
 *NOTE: accessible regions are calculated by averaging the depth scores of 10kb chromosomal chunks across all individuals in the sequencing set up. This BED file should be generated in step 5!*
 
+<hr>
 
 ### Step 7:
 
+<hr>
+
 ### Step 8:
+
+<hr>
 
 ### Step 9:
 
+<hr>
+
 ### Step 10:
+
+<hr>
 
 ### Step 11:
 
