@@ -2,7 +2,22 @@
 
 Code used for calling DNMs with GATK PossibleDeNovo, filtering out mutations by various parameters, and using samtools depth to determine the number of accessible sites per each individual's genome. The surrogate DNM calling technique is also used in this code.
 
-### Step 1: 
+## Table of Contents
+1. [Step 1: GATK Possible De Novo Annotation & Filtering](#step-1-gatk-possible-de-novo-annotation--filtering)
+2. [Step 2: Parallel Coverage Computation](#step-2-coverage-computation)
+3. [Step 3: Add Zeros to Empty Rows](#step-3-add-zeros-to-rows)
+4. [Step 4: Merge Files, Calculate and Filter Average Depth Scores](#step-4-merge-files-and-calculate-average-depths)
+5. [Step 5: Average Depths across Chromosomes across Individuals](#step-5-average-depths-across-chromosomes-across-individuals)
+6. [Step 6: Mask BED and VCF files](#step-6-mask-bed-and-vcf-files)
+7.
+8.
+9.
+10.
+11.
+
+<hr>
+
+## Step 1: GATK Possible De Novo Annotation & Filtering
 `01_GATK_PossibleDeNovo_Annotation_Filtering.sh`
 
 This script annotates and filters possible de novo mutations (DNMs) across multiple individuals in an extended human family pedigree. It utilizes the GATK VariantAnnotator for the PossibleDeNovo annotation and bcftools for filtering.
@@ -28,7 +43,7 @@ Each output VCF is named based on the corresponding PED file and is stored in th
 
 <hr>
 
-### Step 2:
+## Step 2: Coverage Computation
 `02_ParallelCoverageComputation_15Individuals23Chromosomes.sh`
 
 This script computes coverage scores for 15 individuals across 23 chromosomes, processing each combination in parallel. It divides the genome into 10K base pair (bp) chunks and calculates coverage using the samtools depth command.
@@ -54,7 +69,7 @@ This script computes coverage scores for 15 individuals across 23 chromosomes, p
 
 <hr>
 
-### Step 3:
+### Step 3: Add Zeros to Rows
 `03_ChangeEmptyRowstoZeros.sh`
 
 This script is designed to process output files from the coverage calculation step, specifically modifying them to replace any empty values (which are an output artifact from the samtools depth command) with zeros.
@@ -73,7 +88,7 @@ This script is designed to process output files from the coverage calculation st
 
 <hr>
 
-### Step 4:
+### Step 4: Merge Files and Calculate Average Depths
 `04_MergeDepthFiles_and_CalculateAvgDepths.py`
 
 This script is designed to merge depth files across different samples and chromosomes, and then calculate the average depth for each 10KB window (averaged across the 15 individuals in our dataset). We also exclude inaccessible regions from the final output by filtering out averaged depth scores < 12 and >120 (as calculated by samtools depth in step 2).  
@@ -105,7 +120,7 @@ This script consolidates and averages depth information across multiple individu
 
 <hr>
 
-### Step 5:
+### Step 5: Average Depths across Chromosomes across Individuals
 `05_Calculate_Depth_Summary_Statistics.py`
 
 This script calculates the average (mean) depth across 10KB chunks per chromosome, already averaged across individuals from the previous code. While it also computes various summary statistics, these were mainly optional for our purposes. The primary goal is to generate BED files with and without the average depth scores.
@@ -133,7 +148,7 @@ The script processes depth data to create output BED files of the average depth 
 
 <hr>
 
-### Step 6:
+### Step 6: Mask BED and VCF files
 `06_Grab_AccessibleSites_fromVCFs_andBEDs.sh`
 
 This script filters original VCF files for regions that are mappable and have an average accessible depth (calculated in steps 4 & 5). It excludes regions like telomeres, centromeres, segmental duplications, and common SNPs.
