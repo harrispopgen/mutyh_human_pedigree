@@ -349,13 +349,26 @@ Apply BED files generated from step 11 to mask indivdual denominator regions (ge
 <hr>
 
 ## Step 13: Generate Final Counts and Rates
+`13_generate_final_counts_rates.sh`
 
+Calculate and vizualize final mutation counts and rates generated from the final VCF and BED files for all individuals. 
 
-# ### Primary Functions:
+#### Primary Functions:
+-  **Counting Accessible Bases**: Iterates through BED files (generated in step 12 for surrogate individuals, and step 5 for the non-surrogate individuals) & calculate the total number of accessible bases.
+-  **Data Visualization**: Create bar plots to visually represent mutation counts, denominators, and normalized mutation rates across all individuals of the pedigree.
 
 #### Necessary Inputs:
+- Directory path containing BED files (`final_denoms`), generated from step 12 for surrogate individuals and step 5 for non-surrogate individuals (ie the accessible bases BED file). 
 
 #### Required Packages:
+- `os`
+- `pandas`
+- `matplotlib.pyplot`
+- `matplotlib.ticker.ScalarFormatter`
 
 #### Output:
-
+- **Console Output**: Displays the number of accessible bases processed from each file.
+- **Bar Plots**:
+  1. Mutation Counts by Data Frame.
+  2. Denominators multiplied by 2 for each data frame.
+  3. Normalized mutation counts (mutation counts divided by denominators times 2), ie, the number of DNMs per base pair per generation for each pedigree individual. 
