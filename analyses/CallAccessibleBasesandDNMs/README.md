@@ -9,11 +9,12 @@ Code used for calling DNMs with GATK PossibleDeNovo, filtering out mutations by 
 4. [Step 4: Merge Files, Calculate and Filter Average Depth Scores](#step-4-merge-files-and-calculate-average-depths)
 5. [Step 5: Average Depths across Chromosomes across Individuals](#step-5-average-depths-across-chromosomes-across-individuals)
 6. [Step 6: Mask BED and VCF files](#step-6-mask-bed-and-vcf-files)
-7.
-8.
-9.
-10.
+7. [Step 7: Generate IBD Segments for Pedigree Individuals](#step-7-generate-ibds)
+8. [Step 8: Identify Shared hap-IBD Tracts](#step-8-identify-shared-ibd-tracts)
+9. [Step 9: Grab Shared IBD Regions from (surrogate) VCF and BED files](#step-9-grab-shared-ibd-regions-from-vcf-and-bed-files)
+10. [Step 10: Filter Masked VCFs by Site and Sample Specific Metrics](#step-10-filter-masked-vcfs-by-site-and-sample-specific-metrics)
 11.
+12.
 
 <hr>
 
@@ -69,7 +70,7 @@ This script computes coverage scores for 15 individuals across 23 chromosomes, p
 
 <hr>
 
-### Step 3: Add Zeros to Rows
+## Step 3: Add Zeros to Rows
 `03_ChangeEmptyRowstoZeros.sh`
 
 This script is designed to process output files from the coverage calculation step, specifically modifying them to replace any empty values (which are an output artifact from the samtools depth command) with zeros.
@@ -88,7 +89,7 @@ This script is designed to process output files from the coverage calculation st
 
 <hr>
 
-### Step 4: Merge Files and Calculate Average Depths
+## Step 4: Merge Files and Calculate Average Depths
 `04_MergeDepthFiles_and_CalculateAvgDepths.py`
 
 This script is designed to merge depth files across different samples and chromosomes, and then calculate the average depth for each 10KB window (averaged across the 15 individuals in our dataset). We also exclude inaccessible regions from the final output by filtering out averaged depth scores < 12 and >120 (as calculated by samtools depth in step 2).  
@@ -120,7 +121,7 @@ This script consolidates and averages depth information across multiple individu
 
 <hr>
 
-### Step 5: Average Depths across Chromosomes across Individuals
+## Step 5: Average Depths across Chromosomes across Individuals
 `05_Calculate_Depth_Summary_Statistics.py`
 
 This script calculates the average (mean) depth across 10KB chunks per chromosome, already averaged across individuals from the previous code. While it also computes various summary statistics, these were mainly optional for our purposes. The primary goal is to generate BED files with and without the average depth scores.
@@ -148,7 +149,7 @@ The script processes depth data to create output BED files of the average depth 
 
 <hr>
 
-### Step 6: Mask BED and VCF files
+## Step 6: Mask BED and VCF files
 `06_Grab_AccessibleSites_fromVCFs_andBEDs.sh`
 
 This script filters original VCF files for regions that are mappable and have an average accessible depth (calculated in steps 4 & 5). It excludes regions like telomeres, centromeres, segmental duplications, and common SNPs.
@@ -183,21 +184,102 @@ This script filters original VCF files for regions that are mappable and have an
 
 <hr>
 
-### Step 7:
+## Step 7: Generate IBDs
+
+[tbd from Luke]
 
 <hr>
 
-### Step 8:
+## Step 8: Identify Shared IBD Tracts
+`08_GetGrandparent_hapIBD_segs.py`
+
+This script is designed to analyze genomic segments shared among the first generation of individuals in our pedigree. It identifies segments inherited from the grandparents based on Identity by Descent (IBD) data.
+
+#### Primary Functions:
+- Determine if two hap-IBD segments overlap
+- Read and process centromere and telomere tract data
+- Merge overlapping segments and remove small gaps between them (considering centromere and telomere regions)
+- Read and process IBD data for identifying shared segments among first generation individuals
+- Export data structures for duo and trio segment overlaps within the familial structures of our pedigree
+
+#### Necessary Inputs:
+- Centromere tract data: [https://genome.ucsc.edu/cgi-bin/hgTrackUi?db=hg38&g=centromeres](#)
+- Telomere tract data: [https://genome.ucsc.edu/cgi-bin/hgTables](#)
+- IBD files for each chromosome (generated in step 8)
+
+#### Required Packages:
+- `os`
+- `matplotlib` (configured for non-GUI environments)
+
+#### Output:
+The script generates a detailed mapping of shared hap-IBD segments among the first generation (grandparent) individuals of our pedigree, considering duo and trio combinations. The output is organized into dictionaries (shared, duo_segs, trio_segs) for downstream analysis.
 
 <hr>
 
-### Step 9:
+## Step 9: Grab Shared IBD Regions from VCF and BED files
+`09_GrabSurrogate_hapIBDregions.sh`
+
+This script processes VCF files in conjunction with corresponding BED files to apply haplotype-based IBD regions as postive masks. It uses `bedtools` and `bcftools` for applying these masks to the BED files and VCF files, respectively.
+
+#### Primary Functions:
+- Maps VCF files to their corresponding hap-IBD BED files, applying them as a positive mask.
+- Counts sites removed in the VCF by each IBD mask using `bedtools`.
+- Also masks the original accessible bases bed file (generated in step 5) to each hap-IBD bed file, corresponding to the relevant individual used in the surrogate method.
+
+#### Necessary Inputs:
+- VCF and BED files generated from step 6.
+- BED file outputs generated from step 7 (containing shared IBD regions between different combinations of individuals).
+
+#### Required Packages:
+- `htslib/1.9-20`
+- `bcftools/1.12`
+- `bedtools/2.29.2`
+
+#### Output:
+- hap-IBD masked VCF files and BED files per each individual where the surrogate method was applied
+- Counts of sites removed from the numerator (VCF) and denominator (modified accessible bases BED file) by the mask.
+
+The script integrates VCF and BED files to apply specific IBD regions as a positive mask, necessary for calling true de novo mutations in individuals where siblings are used as surrogate parents.
 
 <hr>
 
-### Step 10:
+## Step 10: Filter Masked VCFs by Site and Sample Specific Metrics
+`10_postmasking_filter_site_and_sample_specific_scores.Rmd`
+
+This script takes the output VCFs generated from step 6 (individuals where the surrogate method was not applied) and step 9 (individuals where the surrogate method was applied. It filters VCFs (converted to CSVs for easier processing) by standard quality metrics, then converts the filtered output into renamed csvs for downstream processing in python. 
+
+NOTE: to convert VCFs to CSV files, we used the tool pdbio, with the command: `pdbio vcf2csv --expand-info --expand-samples $sample.vcf.gz > $sample.csv`
+
+#### Primary Functions:
+- process data frames to clean up unecessary columns
+- apply the following site specific filters:
+	- QD > 2.0
+	- FS < 60.0
+	- MQRankSum > -12.5
+        - ReadPosRankSum > -8.0
+        - SOR < 3.0
+- apply the following sample specific filters (for each individual, the child and parents all must pass these filters at each variant site)
+	- 12 > DP < 120
+	- GQ >= 20
+- generate VAF column ("AD_frac") for downstream filtering
+- optional: merge, count, and plot mutations for individuals where the surrogate method was not applied
+- save filtered csv files
+
+#### Necessary Inputs:
+- csv files converted from the VCF file outputs of step 6 and step 9 
+
+#### Required Packages:
+- `dplyr`
+- `tidyr`
+- `ggplot2` (optional)
+
+#### Output:
+- filtered csv files which can be plugged immediately into step 11 for further processing
 
 <hr>
 
-### Step 11:
+## Step 11:
 
+<hr>
+
+## Step 12:
