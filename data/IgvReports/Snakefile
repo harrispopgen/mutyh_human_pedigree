@@ -1,0 +1,192 @@
+
+
+### IMPORTS ---------
+
+# container: "../../../data.nobackup/containers/igvreports.sif"
+configfile: "config.json"
+# OR launch with --config qual=20
+
+### FUNS ---------
+
+rule all:
+    input:
+        config["build-targets-p2"],
+        config["build-targets-p3"]
+
+# 2P ------------------------------------------------------------------
+
+## bams are already indexed
+rule smallBam:
+    input:
+        bam = "TMP.nobackup/src/linkedbams/{sample}.bam",
+        bamtrio1 = "TMP.nobackup/src/linkedbams/{trio1}.bam",
+        bamtrio2 = "TMP.nobackup/src/linkedbams/{trio2}.bam",
+        vcf = "TMP.nobackup/snk/unisamplevcf/{sample}_{trio1}_{trio2}_DNM_{vafgroup}.vcf.gz",
+        vcfi = "TMP.nobackup/snk/unisamplevcf/{sample}_{trio1}_{trio2}_DNM_{vafgroup}.vcf.gz.tbi",
+        assemblyfai = "../ref_SELF/data/GRCh38_1kg.fa.fai"
+    output:
+        bam_small_0 = "TMP.nobackup/snk/smallbams/{sample}_{sample}_{trio1}_{trio2}_small_{vafgroup}.bam",
+        bam_small_1 = "TMP.nobackup/snk/smallbams/{trio1}_{sample}_{trio1}_{trio2}_small_{vafgroup}.bam",
+        bam_small_2 = "TMP.nobackup/snk/smallbams/{trio2}_{sample}_{trio1}_{trio2}_small_{vafgroup}.bam",
+        bed_regs = "TMP.nobackup/smallbams/{sample}_{trio1}_{trio2}_regions_{vafgroup}.bed"
+    resources:
+        mem_mb='1G',
+        time_min='2:00:00' #2h
+    shell:"""
+    genomefile=$(mktemp ./genome-XXXXX)
+    awk 'BEGIN {{OFS="\\t"}} {{print($1,$2)}}' {input.assemblyfai} > $genomefile
+    bcftools query -f '%CHROM\t%POS0\t%POS\n' {input.vcf} |
+        bedtools slop -b 5000 -i - -g $genomefile > {output.bed_regs}
+    samtools view -b -o {output.bam_small_0} --regions-file {output.bed_regs} {input.bam}
+    samtools index {output.bam_small_0}
+    samtools view -b -o {output.bam_small_1} --regions-file {output.bed_regs} {input.bamtrio1}
+    samtools index {output.bam_small_1}
+    samtools view -b -o {output.bam_small_2} --regions-file {output.bed_regs} {input.bamtrio2}
+    samtools index {output.bam_small_2}
+    rm -f $genomefile
+    """
+
+rule igvreport:
+    input:
+        bam = "TMP.nobackup/src/linkedbams/{sample}.bam",
+        bamtrio1 = "TMP.nobackup/src/linkedbams/{trio1}.bam",
+        bamtrio2 = "TMP.nobackup/src/linkedbams/{trio2}.bam",
+        bam_nodups = "TMP.nobackup/snk/filtbams/{sample}_{sample}_{trio1}_{trio2}_nodups_{vafgroup}.bam",
+        bamtrio1_nodups = "TMP.nobackup/snk/filtbams/{trio1}_{sample}_{trio1}_{trio2}_nodups_{vafgroup}.bam",
+        bamtrio2_nodups = "TMP.nobackup/snk/filtbams/{trio2}_{sample}_{trio1}_{trio2}_nodups_{vafgroup}.bam",
+        bam_realign = "TMP.nobackup/snk/smallbams/{sample}_{sample}_{trio1}_{trio2}_small_realigned_{vafgroup}.bam",
+        bamtrio1_realign = "TMP.nobackup/snk/smallbams/{trio1}_{sample}_{trio1}_{trio2}_small_realigned_{vafgroup}.bam",
+        bamtrio2_realign = "TMP.nobackup/snk/smallbams/{trio2}_{sample}_{trio1}_{trio2}_small_realigned_{vafgroup}.bam",
+        filtvcf = "TMP.nobackup/snk/unisamplevcf/{sample}_{trio1}_{trio2}_DNM_{vafgroup}.vcf.gz",
+        indexvcf = "TMP.nobackup/snk/unisamplevcf/{sample}_{trio1}_{trio2}_DNM_{vafgroup}.vcf.gz.tbi"
+    output:
+        html = "results.nobackup/{sample}_{trio1}_{trio2}_igvreport_{vafgroup}.html"
+    resources:
+        mem_mb='5G',
+        time_min='4:00:00'
+    script:
+        "scripts/igvreport_p2.sh" 
+
+# 3P ------------------------------------------------------------------
+
+## bams are already indexed
+rule smallBam3P:
+    input:
+        bam = "TMP.nobackup/src/linkedbams/{sample}.bam",
+        bamtrio1 = "TMP.nobackup/src/linkedbams/{trio1}.bam",
+        bamtrio2 = "TMP.nobackup/src/linkedbams/{trio2}.bam",
+        bamtrio3 = "TMP.nobackup/src/linkedbams/{trio3}.bam",
+        vcf = "TMP.nobackup/snk/unisamplevcf/{sample}_{trio1}_{trio2}_{trio3}_DNM_{vafgroup}.vcf.gz",
+        vcfi = "TMP.nobackup/snk/unisamplevcf/{sample}_{trio1}_{trio2}_{trio3}_DNM_{vafgroup}.vcf.gz.tbi",
+        assemblyfai = "../ref_SELF/data/GRCh38_1kg.fa.fai"
+    output:
+        bam_small_0 = "TMP.nobackup/snk/smallbams/{sample}_{sample}_{trio1}_{trio2}_{trio3}_small_{vafgroup}.bam",
+        bam_small_1 = "TMP.nobackup/snk/smallbams/{trio1}_{sample}_{trio1}_{trio2}_{trio3}_small_{vafgroup}.bam",
+        bam_small_2 = "TMP.nobackup/snk/smallbams/{trio2}_{sample}_{trio1}_{trio2}_{trio3}_small_{vafgroup}.bam",
+        bam_small_3 = "TMP.nobackup/snk/smallbams/{trio3}_{sample}_{trio1}_{trio2}_{trio3}_small_{vafgroup}.bam",
+        bed_regs = "TMP.nobackup/snk/smallbams/{sample}_{trio1}_{trio2}_{trio3}_regions_{vafgroup}.bed"
+    resources:
+        mem_mb='1G',
+        time_min='2:00:00' #2h
+    shell:"""
+    genomefile=$(mktemp ./genome-XXXXX)
+    awk 'BEGIN {{OFS="\\t"}} {{print($1,$2)}}' {input.assemblyfai} > $genomefile
+    bcftools query -f '%CHROM\t%POS0\t%POS\n' {input.vcf} |
+        bedtools slop -b 5000 -i - -g $genomefile > {output.bed_regs}
+    samtools view -b -o {output.bam_small_0} --regions-file {output.bed_regs} {input.bam}
+    samtools index {output.bam_small_0}
+    samtools view -b -o {output.bam_small_1} --regions-file {output.bed_regs} {input.bamtrio1}
+    samtools index {output.bam_small_1}
+    samtools view -b -o {output.bam_small_2} --regions-file {output.bed_regs} {input.bamtrio2}
+    samtools index {output.bam_small_2}
+    samtools view -b -o {output.bam_small_3} --regions-file {output.bed_regs} {input.bamtrio3}
+    samtools index {output.bam_small_3}
+    rm -f $genomefile
+    """
+
+rule igvreport3P:
+    input:
+        bam = "TMP.nobackup/src/linkedbams/{sample}.bam",
+        bamtrio1 = "TMP.nobackup/src/linkedbams/{trio1}.bam",
+        bamtrio2 = "TMP.nobackup/src/linkedbams/{trio2}.bam",
+        bamtrio3 = "TMP.nobackup/src/linkedbams/{trio3}.bam",
+        bam_nodups = "TMP.nobackup/snk/filtbams/{sample}_{sample}_{trio1}_{trio2}_{trio3}_nodups_{vafgroup}.bam",
+        bamtrio1_nodups = "TMP.nobackup/snk/filtbams/{trio1}_{sample}_{trio1}_{trio2}_{trio3}_nodups_{vafgroup}.bam",
+        bamtrio2_nodups = "TMP.nobackup/snk/filtbams/{trio2}_{sample}_{trio1}_{trio2}_{trio3}_nodups_{vafgroup}.bam",
+        bamtrio3_nodups = "TMP.nobackup/snk/filtbams/{trio3}_{sample}_{trio1}_{trio2}_{trio3}_nodups_{vafgroup}.bam",
+        bam_realign = "TMP.nobackup/snk/smallbams/{sample}_{sample}_{trio1}_{trio2}_{trio3}_small_realigned_{vafgroup}.bam",
+        bamtrio1_realign = "TMP.nobackup/snk/smallbams/{trio1}_{sample}_{trio1}_{trio2}_{trio3}_small_realigned_{vafgroup}.bam",
+        bamtrio2_realign = "TMP.nobackup/snk/smallbams/{trio2}_{sample}_{trio1}_{trio2}_{trio3}_small_realigned_{vafgroup}.bam",
+        bamtrio3_realign = "TMP.nobackup/snk/smallbams/{trio3}_{sample}_{trio1}_{trio2}_{trio3}_small_realigned_{vafgroup}.bam",
+        filtvcf = "TMP.nobackup/snk/unisamplevcf/{sample}_{trio1}_{trio2}_{trio3}_DNM_{vafgroup}.vcf.gz",
+        indexvcf = "TMP.nobackup/snk/unisamplevcf/{sample}_{trio1}_{trio2}_{trio3}_DNM_{vafgroup}.vcf.gz.tbi"
+    output:
+        html = "results.nobackup/{sample}_{trio1}_{trio2}_{trio3}_igvreport_{vafgroup}.html"
+    resources:
+        mem_mb='5G',
+        time_min='4:00:00'
+    script:
+        "scripts/igvreport_p3.sh" 
+
+
+# SHARED ------------------------------------------------------------------
+
+rule selectvcfs:
+    input:
+        bed = "TMP.nobackup/src/linkedbeds/{x}_DNM_{vafgroup}.bed",
+        eqtable = "TMP.nobackup/src/reference/equivalence.csv",
+        mainvcf = "TMP.nobackup/src/reference/main.vcf.gz" # with tbi
+    output:
+        vcf = "TMP.nobackup/snk/unisamplevcf/{x}_DNM_{vafgroup}.vcf.gz",
+        vcfi = "TMP.nobackup/snk/unisamplevcf/{x}_DNM_{vafgroup}.vcf.gz.tbi"
+    resources:
+        mem_mb='2G',
+        time_min='2:00:00'
+    shell:"""
+    vars=$(echo {wildcards.x} | awk -F_ 'BEGIN {{ OFS=" "}}; {{$1=$1; print $0}}')
+    tmpFile=$(mktemp ./tmpfile-XXXXX)
+    for i in $vars;
+    do
+        echo $i | awk -F_ '{{print($1)}}' | \
+            egrep -f - {input.eqtable} | \
+            awk -F, '{{print($2)}}' >> $tmpFile 
+    done
+    bcftools view --types snps -R {input.bed} -S $tmpFile -o {output.vcf} -Oz {input.mainvcf}
+    bcftools index -t {output.vcf}
+    rm -f $tmpFile
+    """
+
+rule HaploCall:
+    input:
+        bam = "TMP.nobackup/snk/smallbams/{y}_small_{vafgroup}.bam",
+        assembly = "../ref_SELF/data/GRCh38_1kg.fa"
+    output:
+        bam_realign = "TMP.nobackup/snk/smallbams/{y}_small_realigned_{vafgroup}.bam"
+    resources:
+        mem_mb='8G',
+        time_min='12:00:00' #2h
+    shell:"""
+    module load GATK/4.2.6.1
+    mkdir -p TMP.nobackup/smallbams
+    gatk --java-options "-Xmx8g" HaplotypeCaller  \
+        -R {input.assembly} \
+        -I {input.bam} \
+        -O TMP.nobackup/smallbams/{wildcards.y}.vcf.gz \
+        -bamout {output.bam_realign}  
+    samtools index {output.bam_realign}
+    """
+
+## I assume there should be a better way to do this but idk which one
+rule rmDupsMQ20:
+    input:
+        bam = "TMP.nobackup/snk/smallbams/{x}_small_{vafgroup}.bam",
+    output:
+        bam_nodups = "TMP.nobackup/snk/filtbams/{x}_nodups_{vafgroup}.bam"
+    resources:
+        mem_mb='2G',
+        time_min='24:00:00' #8h
+    shell:"""
+    samtools view -F 1024 --min-MQ 20 -b -o {output.bam_nodups} {input.bam}
+    samtools index {output.bam_nodups}
+    """
+
