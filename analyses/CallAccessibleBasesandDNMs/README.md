@@ -321,24 +321,41 @@ NOTE: we use the Jupyter notebook environment to run the Dash app for interactiv
 <hr>
 
 ## Step 12: Generate Final Denominators
+`12_GenerateFinalBEDs_forSurrogates.sh`
+
+Apply BED files generated from step 11 to mask indivdual denominator regions (generated in step 9) where mutations cannot be called in surrogate individuals (AKA "dense" clusters). 
 
 #### Primary Functions:
-
+- Merge BED files generated from step 9 for each individual.
+- Sort combined BED files.
+- Intersect the combined BED files with negative mask files generated in step 11 (per individual) to finalize denominator BED files.
+- Calculates base pair counts before and after the intersection.
+ 
 #### Necessary Inputs:
+- Masked BED files generated from step 9.
+- negative mask files generated from step 11.
+- An associative array of individual-specific negative masks.
+- An associative array of BED files for each individual.
 
 #### Required Packages:
+- `htslib/1.9-20`
+- `bcftools/1.12`
+- `bedtools/2.29.2`
 
 #### Output:
+- Final masked BED files for each individual stored (which are used as the "denominators" per each surrogate individual)
+- Console output displaying the base pair counts before and after processing.
 
 <hr>
 
 ## Step 13: Generate Final Counts and Rates
 
 
-#### Primary Functions:
+# ### Primary Functions:
 
 #### Necessary Inputs:
 
 #### Required Packages:
 
 #### Output:
+
