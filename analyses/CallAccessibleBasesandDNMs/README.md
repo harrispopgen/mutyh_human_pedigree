@@ -13,8 +13,9 @@ Code used for calling DNMs with GATK PossibleDeNovo, filtering out mutations by 
 8. [Step 8: Identify Shared hap-IBD Tracts](#step-8-identify-shared-ibd-tracts)
 9. [Step 9: Grab Shared IBD Regions from (surrogate) VCF and BED files](#step-9-grab-shared-ibd-regions-from-vcf-and-bed-files)
 10. [Step 10: Filter Masked VCFs by Site and Sample Specific Metrics](#step-10-filter-masked-vcfs-by-site-and-sample-specific-metrics)
-11.
-12.
+11. [Step 11: Apply sparsity filter, interactively visualize mutations, and generate final mutation counts callset](#step-11-apply-sparsity-filter-and-generate-final-mutation-counts-callset)
+12. [Step 12: Generate final callset of accessible bases for surrogate individuals](#step-12-generate-final-denominators)
+13. [Step 13: Calculate and plot number of accessible bases and rates per individual](#step-13-generate-final-counts-and-rates)
 
 <hr>
 
@@ -278,8 +279,66 @@ NOTE: to convert VCFs to CSV files, we used the tool pdbio, with the command: `p
 
 <hr>
 
-## Step 11:
+## Step 11: Apply sparsity filter and generate final mutation counts callset
+`11_TagSparseMutations_GenerateNegMasksforSurrogates.ipynb`
+
+Various functions to filter out dense mutations in surrogate individuals using a sliding window approach; create and apply BED files where there are dense regions of mutations; visually inspect mutations unique and shared across different parents per surrogate individual; and grab and count "sparse mutations".
+
+NOTE: we use the Jupyter notebook environment to run the Dash app for interactive visualizations. More information on configuring this specific environment can be found here: https://dash.plotly.com/dash-in-jupyter
+ 
+#### Primary Functions:
+- identify "dense" and "sparse" mutations per csv callset using a sliding window approach
+- generate BED files of "dense" clusters to be used as negative masks on the final denominator for surrogate individuals
+- visually inspect dense and sparse mutations with an interactive graph
+- visually inspect mutations shared across different callsets for the same individual (for example, C21 with C22 as father vs. C21 with C23 as father)
+- grab all "shared" and "unique" mutations across callsets per individual, count and plot
+- visually inspect VAF distribution of mutations, apply filter (0.3 < VAF > 0.7)
+- create a BED file containing the positions of each individual's mutations
+
+#### Necessary Inputs:
+- filtered csv files generated from step 10
+
+#### Required Packages:
+- `os`
+- `numpy`
+- `pandas`
+- `zipfile`
+- `re`
+- `collections`
+- `pybedtools`
+- `matplotlib`
+- `dash`
+- `jupyter_dash` (if using Jupyter Notebook GUI)
+- `plotly`
+
+#### Output:
+- html files of Dash app visualizations, zipped
+- BED files of "dense" clusters per surrogate individual callset
+- final tally of mutations per individual in csv format
+- BED files of all identified mutations per individual
+- optional: plot of VAF distribution of mutations per individual
 
 <hr>
 
-## Step 12:
+## Step 12: Generate Final Denominators
+
+#### Primary Functions:
+
+#### Necessary Inputs:
+
+#### Required Packages:
+
+#### Output:
+
+<hr>
+
+## Step 13: Generate Final Counts and Rates
+
+
+#### Primary Functions:
+
+#### Necessary Inputs:
+
+#### Required Packages:
+
+#### Output:
