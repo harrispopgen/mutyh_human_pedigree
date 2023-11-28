@@ -33,8 +33,8 @@ This script annotates and filters possible de novo mutations (DNMs) across multi
 2. **PED files**: A series of PED files defining family structures and individuals to consider for DNM calling. These files include various family trio configurations (including all surrogate trio combinations).
 
 #### Required Packages:
-- GATK (Genome Analysis Toolkit) version 4.2.6.1
-- bcftools for variant filtering
+- `GATK (Genome Analysis Toolkit) version 4.2.6.1`
+- `bcftools/1.12`
 
 #### Output:
 The script generates VCF files for each PED file analyzed, with two sets of output files:
@@ -104,10 +104,10 @@ This script is designed to merge depth files across different samples and chromo
 - Directory path for error logging.
 
 #### Required Packages:
-- os
-- pandas
-- random
-- numpy
+- `os`
+- `pandas`
+- `random`
+- `numpy`
 
 #### Output:
 - Merged depth files per chromosome across all individuals
@@ -138,8 +138,8 @@ This script calculates the average (mean) depth across 10KB chunks per chromosom
 - Directory path to output of step 4 (averaged depth files per chromosome across individuals)
 
 #### Required Packages:
-- os
-- pandas
+- `os`
+- `pandas`
 
 #### Output:
 - A summary table in CSV format containing the mean, median, range, and 2.5 times the mean depth for each chromosome.
