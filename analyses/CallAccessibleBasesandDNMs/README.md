@@ -201,8 +201,7 @@ This nextflow pipeline merges the the 15 individual WGS dataset with the high-co
 performs IBD calling using hapibd (process `infer_ibd`)
 converts the hapibd output format (see table 1) into a custom format (table 2) for downstream processing outlined in Step __ using the Python script `reformat_ibd_output.py` (see process `convert_dataformat`)
 
-Table 1:
-
+<b>Table 1:</b>
 |:----------:|
 | sample 1 id |
 | haplotype index of sample 1 (1 or 2) |
@@ -212,8 +211,7 @@ Table 1:
 | start position of IBD segment |
 | end position of the IBD segment |
 
-Table 2:
-
+<b>Table 2:</b>
 |:----------:|
 | chromosome |
 | start position of IBD segment |
