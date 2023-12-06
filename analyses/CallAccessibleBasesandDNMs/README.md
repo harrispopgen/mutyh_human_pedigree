@@ -185,9 +185,40 @@ This script filters original VCF files for regions that are mappable and have an
 
 <hr>
 
-## Step 7: Generate IBDs
+## Step 7: Identity by Descent (IBD) calling
 
-[tbd from Luke]
+#### Necessary Inputs:
+- Phased 15-individual WGS VCF from Beagle
+- 1000 Genomes Whole Genome Sequencing data
+- Recombination maps
+
+#### Required Packages:
+- `htslib/1.12`
+- `bcftools/1.12`
+- `hapibd`
+
+This nextflow pipeline merges the the 15 individual WGS dataset with the high-coverage 1000 Genomes dataset, keeps common variants that are found at a minor allele frequency of >10%, and removes all remaining sites that are un-phased or contain missing data (see processes `merge_with_onekg`, `filter_vcf`, `remove_unphased_and_missing_site` for details)
+performs IBD calling using hapibd (process `infer_ibd`)
+converts the hapibd output format (see table 1) into a custom format (table 2) for downstream processing outlined in Step __ using the Python script `reformat_ibd_output.py` (see process `convert_dataformat`)
+
+Table 1:
+| sample 1 id |
+| haplotype index of sample 1 (1 or 2) |
+| sample 2 id |
+| haplotype index of sample 2 (1 or 2) |
+| chromosome |
+| start position of IBD segment |
+| end position of the IBD segment |
+
+Table 2:
+| chromosome |
+| start position of IBD segment |
+| end position of IBD segment |
+| sample_haplotype 1 |
+| sample_haplotype 2 |
+
+The sample haplotype in the custom format is obtained by first mapping the haplotype index (either 1 or 2) in the hapibd output file to `a` or `b` respectively, and then concatenating it to the hapibd sample id. For example, for a given IBD segment in hapibd, if sample 1 id = S11, and haplotype index = 1, the resulting sample_haplotype in the custom format will be S11a.
+Relevant path definitions and resource requirements for individual processes are found in the `nextflow.config` file, although note that the cluster settings are specific to the sun grid engine (SGE) and all files are located on a local hard drive, therefore the pipeline is not expected to be reproducible out of the box.
 
 <hr>
 
