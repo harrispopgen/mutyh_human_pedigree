@@ -202,6 +202,7 @@ performs IBD calling using hapibd (process `infer_ibd`)
 converts the hapibd output format (see table 1) into a custom format (table 2) for downstream processing outlined in Step __ using the Python script `reformat_ibd_output.py` (see process `convert_dataformat`)
 
 Table 1:
+
 |:----------:|
 | sample 1 id |
 | haplotype index of sample 1 (1 or 2) |
@@ -212,6 +213,7 @@ Table 1:
 | end position of the IBD segment |
 
 Table 2:
+
 |:----------:|
 | chromosome |
 | start position of IBD segment |
