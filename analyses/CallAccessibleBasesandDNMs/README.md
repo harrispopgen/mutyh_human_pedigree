@@ -9,7 +9,7 @@ Code used for calling DNMs with GATK PossibleDeNovo, filtering out mutations by 
 4. [Step 4: Merge Files, Calculate and Filter Average Depth Scores](#step-4-merge-files-and-calculate-average-depths)
 5. [Step 5: Average Depths across Chromosomes across Individuals](#step-5-average-depths-across-chromosomes-across-individuals)
 6. [Step 6: Mask BED and VCF files](#step-6-mask-bed-and-vcf-files)
-7. [Step 7: Generate IBD Segments for Pedigree Individuals](#step-7-generate-ibds)
+7. [Step 7: Generate IBD Segments for Pedigree Individuals](#step-7-Identity-by-Descent-calling)
 8. [Step 8: Identify Shared hap-IBD Tracts](#step-8-identify-shared-ibd-tracts)
 9. [Step 9: Grab Shared IBD Regions from (surrogate) VCF and BED files](#step-9-grab-shared-ibd-regions-from-vcf-and-bed-files)
 10. [Step 10: Filter Masked VCFs by Site and Sample Specific Metrics](#step-10-filter-masked-vcfs-by-site-and-sample-specific-metrics)
@@ -185,7 +185,7 @@ This script filters original VCF files for regions that are mappable and have an
 
 <hr>
 
-## Step 7: Identity by Descent (IBD) calling
+## Step 7: Identity by Descent calling
 
 #### Necessary Inputs:
 - Phased 15-individual WGS VCF from Beagle
