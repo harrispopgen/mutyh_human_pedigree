@@ -1,7 +1,6 @@
 #! /bin/bash
-#$ -e /net/harris/vol1/home/clyoung1/myh_pedigree/230705_fullpipeline/minimal_filtered_mutations/errors
-#$ -o /net/harris/vol1/home/clyoung1/myh_pedigree/230705_fullpipeline/minimal_filtered_mutations/errors
 
+# Load required modules
 module load modules modules-init modules-gs
 module load python/3.9.13 numpy/1.23.1 pysam/0.19.0 cyvcf2/0.30.16 unfazed/08052022
 
