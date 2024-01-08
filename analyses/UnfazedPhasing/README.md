@@ -6,13 +6,7 @@ This Bash script is designed to automate the execution of the `unfazed` tool for
 
 Before running this script, ensure you have the following:
 
-- **Operating System**: This script is designed for Unix-based systems like Linux.
-
-- **Bash**: The script is written in Bash, so Bash shell is required.
-
-- **Modules**: The script uses the `module` command to load specific software modules. Make sure you have access to the `module` command on your system.
-
-- **Python**: Python 3.9.13 is required. You may need to install it or ensure it's available in your environment.
+- **Python**: Python 3.9 is required. 
 
 - **Python Packages**:
   - `numpy` version 1.23.1
