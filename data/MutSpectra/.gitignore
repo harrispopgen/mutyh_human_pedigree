@@ -1,0 +1,7 @@
+
+.env
+*.data.*
+*.csv
+*.csv.old
+*.pdf
+.*.done

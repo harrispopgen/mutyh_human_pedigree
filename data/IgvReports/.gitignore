@@ -1,0 +1,17 @@
+
+.Rhistory
+*.fa
+*.fa.fai
+.snakemake
+sge
+tmpBams
+config.json
+samples*
+template
+TMP.nobackup
+.env
+sgestd*
+results.nobackup/
+00_LEGACY
+data.nobackup/
+tmpfile*
