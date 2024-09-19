@@ -3,7 +3,8 @@ require(reshape2)
 require(tidyr)
 # code to count up maternally and paternally phased mutations from Candice's unfazed tables
 
-indir="/Users/annabelbeichman/Documents/UW/Human_MUTYH/results/Unfazed/230912_minimal_phased_mutations_IGV_filtered/" # these have bugfix, minimal VAF, and have had IGV red calls excluded
+indir="/Users/annabelbeichman/Documents/UW/Human_MUTYH/results/Unfazed/240909_NewResults_bugfix_REVISIONS/" # these have bugfix, minimal VAF, and have had IGV red calls excluded, and now have doublesurrogate calls incorporated 
+# second bugfix 
 
 totalCountsPhasingSuccess=read.table(paste0(indir,"total_counts_with_parents_IGV_filtered.txt"),header=T,sep="\t")
 # this also has accessible bases 
@@ -47,6 +48,9 @@ phasedMutations_allKids_SummedUp_wide <- phasedMutations_allKids_SummedUp_wide %
 fullDF_allInfo <- merge(totalCountsPhasingSuccess[!totalCountsPhasingSuccess$child_ID %in% c("P1","P2","P3","P4"),],phasedMutations_allKids_SummedUp_wide,by.x="child_ID",by.y="child_id",all=T)
 
 fullDF_allInfo
+
+# exclude notes column:
+#fullDF_allInfo <- select(fullDF_allInfo,-"notes")
 
 write.table(fullDF_allInfo,paste0(indir,"ALLCHILDREN.TotalCounts.PhasedToEachParent.WithPhasingSucessRate.txt"),quote=F,sep="\t",row.names = F)
 

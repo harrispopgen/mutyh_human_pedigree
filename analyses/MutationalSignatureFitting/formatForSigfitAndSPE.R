@@ -16,7 +16,7 @@ data("cosmic_signatures_v3.2") # this pulls from sigfit
 
 ### 3mer mutation spectrum from David
 # need to exclude 'red' calls that were flagged by IGV and total up per person/per type
-mutationTypesPerSite <- read.table(paste0(wd,"3merSpectrum.David.ContainsRedCalls.20230920.csv"),sep=",",header=T)
+mutationTypesPerSite <- read.table(paste0(wd,"240918_subsetted_threemerSpectrum.csv"),sep=",",header=T) ## THIS IS NOW UPDATED TO BE DS corrected 20240822 and had bug fix on 20240918
 
 head(mutationTypesPerSite)
 
@@ -30,9 +30,8 @@ mutationSpectrum <- mutationTypesPerSite %>%
 # dim(mutationTypesPerSite[mutationTypesPerSite$Type=="red",]) #261 are red
 
 
-dim(mutationTypesPerSite) # 931
-sum(mutationSpectrum$total_count) #670
-# 931-670 = 261 and that is exactly how many reds there are. correct.
+dim(mutationTypesPerSite) # 931 --> 606 after ds corretion --> 642 after P-bug fix 
+sum(mutationSpectrum$total_count) #670 --> 606 after ds correction and candice removed red sites so 0 red sites are present now; cool --> 642 after bug fix
 
 head(mutationTypesPerSite)
 
@@ -64,8 +63,10 @@ head(mutationSpectrum_wider)
 # some types are totally missing (0 in all samples)
 # need to fill those in 
 missingmutationtypes <- colnames(cosmic_signatures_v3.2)[!colnames(cosmic_signatures_v3.2) %in% colnames(mutationSpectrum_wider)]
+missingmutationtypes
 # "CCG>CGG" "ATG>AAG" "ATC>AGC" "GTA>GGA" "GTG>GGG" "GTT>GGT" "TTC>TGC"
-
+# "CCG>CGG" "ATG>AAG" "ATC>AGC" "ATT>AGT" "GTA>GGA" "GTG>GGG" "GTT>GGT" "TTC>TGC" # after ds correction
+# "CCG>CGG" "ATG>AAG" "ATC>AGC" "ATT>AGT" "GTA>GGA" "GTG>GGG" "GTT>GGT" "TTC>TGC" after bug fix
 mutationSpectrum_wider[,missingmutationtypes] <- 0 # this adds those missing mutation types as empty columns at end of df
 
 # reorder columns to match the order of the cosmic signatures
@@ -302,3 +303,4 @@ if(sum(mutationSpectrum_perGroup_SPE$`Mutation Types`!=spe_examplefile$Mutation.
 }
 
 write.table(mutationSpectrum_perGroup_SPE,paste0(wd,"AllSpectra.FormattedForSigProfilerExtractor.PERGROUP.txt"),row.names = F,quote=F,sep="\t")
+

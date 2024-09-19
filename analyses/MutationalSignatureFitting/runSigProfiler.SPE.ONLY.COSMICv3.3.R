@@ -8,11 +8,10 @@ require(reticulate)
 library(SigProfilerExtractorR) #updated 9/21/23
 todaysdate=format(Sys.Date(),"%Y%m%d")
 inputdir="/Users/annabelbeichman/Documents/UW/Human_MUTYH/results/signatureFitting/"
-listofkids=c("C11","C12","C31","C32","C21","C22","C23","C42","C41","P1","P2","P3","P4")
-
+# uses default cosmic version 3.3
 # you wrote out data ready for SPE/SPA in previous script
 ############## run sig profiler extractor #########
-spe_outdir=paste0(inputdir,"sigprofilerextractor/",todaysdate,"_Results/")
+spe_outdir=paste0(inputdir,"sigprofilerextractor/",todaysdate,"_Results_DSCorrection_COSMICv3.3/")
 dir.create(spe_outdir)
 
 # run per family:

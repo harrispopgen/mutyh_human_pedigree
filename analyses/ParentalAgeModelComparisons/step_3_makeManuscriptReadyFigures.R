@@ -9,7 +9,7 @@ require(reshape2)
 # no hyphenation of mono- and bi-allelic
 # MAKE SURE YOU'RE ALWAYS USING EXPECTED COUNTS THAT HAVE BEEN CORRECTED FOR ACC. GENOME SIZE (variables will end with something like *_TimesAccGenomeRatio)
 ########### Replotting figures for Manuscript ########### 
-wd="/Users/annabelbeichman/Documents/UW/Human_MUTYH/results/jonssonRegressions/2023-11-15_Results_MinVAF_bugfix_IGVFiltered_MinEffectSizeAnalysis/" # working directory 
+wd="/Users/annabelbeichman/Documents/UW/Human_MUTYH/results/jonssonRegressions/2024-09-09_Results_MinVAF_bugfix_IGVFiltered_MinEffectSizeAnalysis_DSCorrection_BUGFIX_FORREVISIONS/" # working directory -- 20240822 now has DS and shared allele correction; post bug-fix 20240909
 indir=paste0(wd,"/script_output/") # get from Google drive
 
 # main figure outdir:

@@ -10,10 +10,11 @@ require(tidyr)
 # quick note about rounding: you don't round expected counts from jonsson model. the only place rounding happens is when expectations become 'observations' which should be integers. but lambda remains real numbers.
 # Sherwood observations for phased data (not overall spectra) should be rounded since they are based on multiplying %s phased and so aren't integers (their overall DNM count is an integer, as are their summed up spectra)
 todaysdate=Sys.Date()
-outdir=paste0("/Users/annabelbeichman/Documents/UW/Human_MUTYH/results/jonssonRegressions/",todaysdate,"_Results_MinVAF_bugfix_IGVFiltered_MinEffectSizeAnalysis/script_output/")
+outdir=paste0("/Users/annabelbeichman/Documents/UW/Human_MUTYH/results/jonssonRegressions/",todaysdate,"_Results_MinVAF_bugfix_IGVFiltered_MinEffectSizeAnalysis_DSCorrection_BUGFIX_FORREVISIONS/script_output/")
 
-dir.create(outdir,showWarnings = F)
-dataIndir="/Users/annabelbeichman/Documents/UW/Human_MUTYH/results/Unfazed/230912_minimal_phased_mutations_IGV_filtered/" # results from Unfazed, minimal VAF, bugfix, have been IGV filtered
+dir.create(outdir,showWarnings = T,recursive = T)
+dataIndir="/Users/annabelbeichman/Documents/UW/Human_MUTYH/results/Unfazed/240909_NewResults_bugfix_REVISIONS/" # results from Unfazed, minimal VAF, bugfix, have been IGV filtered, and now with double surrogate correction and shared allele filters applied; other bug fixed as of 20240909
+
 jonssonTableS9 <- read.table("/Users/annabelbeichman/Documents/UW/Human_MUTYH/information/Jonsson_nature24018-s2/Jonsson.Table9.ForMutyhProject.Wide.ForR.txt",header=T) # note this has had the T>N nucleotides rev-comped. was manually typed up in excel from Jonsson's table S9 and checked visually. (T>A became A>T; T>C became A>G; T>G became A>C)
 # includes CpGs for now!
 jonssonTableS9
@@ -141,7 +142,7 @@ expectedMutationCounts_df_CpGsAddedIn <- expectedMutationCounts_df %>%
 
 ########### Correct Expectations by differences in denominator between our study and Jonsson ##############
 # this table has acc. genome info
-denominatorInfo <- read.table(paste0(dataIndir,"total_counts_with_parents_IGV_filtered.txt"),sep="\t",header=T)
+denominatorInfo <- read.table(paste0(dataIndir,"total_counts_with_parents_IGV_filtered.txt"),sep="\t",header=T) # 20240822 note these values have changed after the doublesurrogate correction
 
 JonssonAccessibleBases=2682890000 # 2.6 Gb, from Jonsson et al.
 
@@ -204,7 +205,7 @@ compareTotalCounts_ToJonsson <- ggplot(totalPerChild_EXPECTED_and_OBSERVED,aes(x
 
 compareTotalCounts_ToJonsson
 ggsave(paste0(outdir,"ourData.compareTotalCounts_ToJonsson.pdf"),compareTotalCounts_ToJonsson,height=5,width=7)
-
+# missing values: P2
 
 ### Get Poisson probabilities on total counts ##########
 #P2 is NA so have to remove and make as numeric
